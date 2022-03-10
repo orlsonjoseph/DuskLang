@@ -1,0 +1,3 @@
+# Variable Assignment
+# Let is solely assignment
+let age: int = 22;

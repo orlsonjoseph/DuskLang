@@ -7,7 +7,7 @@
 class Tokens:
 
     # Reserved words
-    reserved = ['LET']
+    reserved = ['int', 'let']
 
     # Literals (identifier)
     t_ID        = r'[A-Za-z_][A-Za-z0-9_]*',
@@ -49,4 +49,4 @@ class Tokens:
     newline     = r'\n'
 
     # Punctuation
-    punctuation = [t_PLUS, t_MINUS, t_EQUALS, t_SEMI]
+    punctuation = [t_PLUS, t_MINUS, t_EQUALS, t_SEMI, t_COLON]

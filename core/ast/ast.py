@@ -4,7 +4,8 @@
 # Abstract Syntactic Tree
 # ----------------------------------------------------------------------
 
-from ast import operator
+# TODO token for position
+
 from core.ast.base import Statement, Expression
 from core.exceptions import DuskNameError, DuskTypeError
 
@@ -28,6 +29,27 @@ class Block(Statement):
     
     def __str__(self) -> str:
         return f"Block - {self.body}"
+
+# TODO refactor; I am tired and code is ambiguous though working
+class LetStatement(Statement):
+    def __init__(self, label, type, value) -> None:
+        super().__init__()
+
+        self.label, self.type = label, type
+        self.value = value
+
+    def __str__(self) -> str:
+        return f"Let [{self.label}] {self.type} {self.value}"
+
+    def _eval(self, env):
+        super()._eval(env)
+
+        if self.label.name in env:
+            raise DuskNameError(
+                f"Name {self.label} already exists. (Line {self.label.linepos}")
+                
+        env[self.label.name] = (self.value, self.type)
+        return (self.label.name, self.value._eval(env), self.type._eval(env))
 
 class BinaryOperation(Expression):
     def __init__(self, left, right, operator) -> None:
@@ -74,7 +96,7 @@ class UnaryOperation(Expression):
             return - self.right._eval(env)
 
 class Literal(Expression):
-    def __init__(self, token, name) -> None:
+    def __init__(self, name, token) -> None:
         super().__init__()
         
         self.name, self.token = name, token
@@ -86,10 +108,10 @@ class Literal(Expression):
         super()._eval(env)
 
         if exists:
-            if not env.has_key(self.name):
+            if self.name not in env:
                 raise DuskNameError(f"Name '{self.name}' not defined. (Line {self.token.linepos})")
         # TODO retrieve variable
-        return 0
+        return self.name
 
 class Number(Expression):
     def __init__(self, value) -> None:
@@ -104,3 +126,17 @@ class Number(Expression):
         super()._eval(env)
 
         return int(self.value)
+
+class TypeIdentifier(Expression):
+    def __init__(self, type) -> None:
+        super().__init__()
+
+        self.type = type
+
+    def __str__(self) -> str:
+        return f"Type <{self.type.upper()}>"
+    
+    def _eval(self, env):
+        super()._eval(env)
+
+        return self.type

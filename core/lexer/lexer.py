@@ -4,6 +4,7 @@
 # Lexer
 # ----------------------------------------------------------------------
 
+from queue import Empty
 import re
 
 from core.lexer.tokens import Tokens as library
@@ -40,6 +41,9 @@ class Lexer:
         if lexeme:
             # Priority
             # 1. Reserved words
+            if lexeme in library.reserved:
+                return Token(
+                    lexeme.upper(), lexeme, stream.get_position()), EMPTY_STRING
 
             # 2. Everything in order of definition
             for label, expression in self.rules:

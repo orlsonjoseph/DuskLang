@@ -4,7 +4,7 @@
 # Abstract Syntactic Tree
 # ----------------------------------------------------------------------
 
-from core.ast.ast import BinaryOperation, Block, Literal, Number, Program, UnaryOperation
+from core.ast.ast import BinaryOperation, Block, LetStatement, Literal, Number, Program, TypeIdentifier, UnaryOperation
 from core.config import EOF
 from core.exceptions import ParsingError
 
@@ -16,7 +16,6 @@ def p_error(p, expected):
 
 def p_program(p):
     # program: (statement_list EOF)
-    # if p.next_token.type == TODO handle function declaration
     statement_list = p_statement_list(p)
 
     if p.next_token == EOF:
@@ -26,7 +25,7 @@ def p_program(p):
 
 def p_statement_list(p):
     # statement_list: statement SEMI statement_list
-    # statement_list: statement SEMI
+    #               | statement SEMI
     statement = p_statement(p)
     if p.current_token == 'SEMI':
         if p.next_token != EOF:
@@ -38,14 +37,45 @@ def p_statement_list(p):
     return p_error(p, 'SEMI')
 
 def p_statement(p):
-    # statement : expression_statement | ... TODO
-    expression = p_expression_statement(p)
-    return expression
+    # statement : expression_statement
+    #           | let_statement
+    #           | ... TODO
+
+    if p.current_token == "LET":
+        return p_let_statement(p)
+
+    return p_expression_statement(p)
+
+def p_let_statement(p):
+    # let_statement : LET ID COLON type_identifier EQUALS expression_statement SEMI
+    p.update()
+    name = p_literal(p)
+
+    if p.current_token == 'COLON':
+        p.update()
+
+        type = p_type_identifier(p)
+        if p.current_token == 'EQUALS':
+            p.update()
+
+            assign = p_expression_statement(p)
+            return LetStatement(name, type, assign)
+        else:
+            return p_error(p, 'EQUALS')
+    else:
+        return p_error(p, 'COLON')
+
+    if not p.current_token == 'EQUALS': p_error(p, 'EQUALS')
+    
+    # Skip equal sign
+    p.update() 
+
+    return 
 
 def p_expression_statement(p):
-    # expression_statement : arithmetic_expression |
-    #                      : group_expression
-    #                      : ... TODO
+    # expression_statement : arithmetic_expression
+    #                      | group_expression
+    #                      | ... TODO
     if p.current_token == 'LBRACE':
         return p_block_statement(p)
 
@@ -98,6 +128,7 @@ def p_unary_operator(p):
     return UnaryOperation(operator, p_factor_expression(p))
 
 def p_group_expression(p):
+    # group_expression : LPAREN arithmetic_expression RPAREN
     p.update()
 
     # TODO update to expression statement? maybe
@@ -108,16 +139,31 @@ def p_group_expression(p):
     
     return p_error(p, 'RPAREN')
 
+def p_type_identifier(p):
+    # type_identifier : INT
+    #                 : literal
+    if p.current_token in ['INT']:
+        type = p.current_token.type
+        p.update()
+
+        return TypeIdentifier(type)
+
+    return p_error(p, 'type identifer')
+
 def p_atom(p):
     token = p.current_token
 
-    if token == "ID":
-        p.update()
-        return Literal(token.value, token)
+    if token == 'ID':
+        return p_literal(p)
     
-    if token == "INTEGER":
+    if token == 'INTEGER':
         p.update()
         return Number(token.value)
     
     return p_error(p, 'atom')
 
+def p_literal(p):
+    token = p.current_token
+
+    p.update()
+    return Literal(token.value, token)
