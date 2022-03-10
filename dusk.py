@@ -12,9 +12,10 @@ from core.config import EXTENSION
 from core.lexer.lexer import Lexer
 from core.lexer.stream import Stream
 from core.parser.parser import Parser
+from core.eval.eval import Eval
 
 # Limit Python builtin traceback system for clearer exceptions
-sys.tracebacklimit = 0
+# sys.tracebacklimit = 0
 
 # TODO Logging
 
@@ -49,10 +50,16 @@ class Dusk:
         self.tokens = self.lexer.add_EOF_token()
 
         print(self.tokens)
-        
+
         # Parser
         self.parser = Parser(self.tokens)
         self.ast = self.parser.parse()
+
+        print(self.ast)
+        
+        # Evaluator / Interpreter
+        self.interpreter = Eval(self.ast, True)
+        self.interpreter.run()
 
 if __name__ == "__main__":
     

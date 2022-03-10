@@ -22,7 +22,11 @@ class Token:
 
     def __repr__(self) -> str:
         return self.__str__()
-
+    
+    # Overloading comparison
+    def __eq__(self, __o: object) -> bool:
+        if isinstance(__o, str):
+            return self.type == __o
 
 class Lexer:
     def __init__(self) -> None:
@@ -87,7 +91,8 @@ class Lexer:
 
                 continue
 
-            lexeme += character
+            if not re.fullmatch(library.newline, character):
+                lexeme += character
                 
         return self.tokens
 

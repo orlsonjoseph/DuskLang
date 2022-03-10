@@ -4,16 +4,120 @@
 # Abstract Syntactic Tree
 # ----------------------------------------------------------------------
 
-from core.ast.ast import Literal, Program
+from core.ast.ast import BinaryOperation, Block, Literal, Number, Program, UnaryOperation
+from core.config import EOF
+from core.exceptions import ParsingError
+
+OPERATORS = ['PLUS', 'MINUS', 'MULT', 'DIV']
+
+def p_error(p, expected):
+    raise ParsingError(
+        f"Expected token {expected} got {p.current_token.value}")
 
 def p_program(p):
+    # program: (statement_list EOF)
     # if p.next_token.type == TODO handle function declaration
-    return Program(body = p_expression(p))
+    statement_list = p_statement_list(p)
 
-def p_expression(p):
-    # if p.current_token.type == 
-    return 
+    if p.next_token == EOF:
+        return Program(body = statement_list)
 
-def p_factor(p):
-    if p.current_token.type == "ID":
-        return 
+    return p_error(p, EOF)
+
+def p_statement_list(p):
+    # statement_list: statement SEMI statement_list
+    # statement_list: statement SEMI
+    statement = p_statement(p)
+    if p.current_token == 'SEMI':
+        if p.next_token != EOF:
+            p.update()
+            return [statement].extend(p_statement_list(p))
+        else:
+            return [statement]
+
+    return p_error(p, 'SEMI')
+
+def p_statement(p):
+    # statement : expression_statement | ... TODO
+    expression = p_expression_statement(p)
+    return expression
+
+def p_expression_statement(p):
+    # expression_statement : arithmetic_expression |
+    #                      : group_expression
+    #                      : ... TODO
+    if p.current_token == 'LBRACE':
+        return p_block_statement(p)
+
+    expression = p_arithmetic_expression(p)
+    return expression
+
+# TODO rename group to Block 
+def p_block_statement(p):
+    # block_statement : LBRACE expression_statement RBRACE
+    p.update()
+
+    group = Block(body = p_expression_statement(p))
+    if p.current_token == 'RBRACE':
+        return group
+    
+    return p_error(p, 'RBRACE')
+
+# Helper function
+def binary_operator(p, fx, operators):
+    left = fx(p)
+
+    while p.current_token.type in operators:
+        operator = p.current_token
+        p.update()
+
+        right = fx(p)
+        left = BinaryOperation(left, right, operator)
+
+    return left
+
+def p_arithmetic_expression(p):
+    return binary_operator(p, p_term_expression, ('PLUS', 'MINUS'))
+
+def p_term_expression(p):
+    return binary_operator(p, p_factor_expression, ('MULT', 'DIV'))
+
+def p_factor_expression(p):
+    if p.current_token.type in ('PLUS', 'MINUS'):
+        return p_unary_operator(p)
+
+    if p.current_token == 'LPAREN':
+        return p_group_expression(p)
+        
+    return p_atom(p)
+
+def p_unary_operator(p):
+    operator = p.current_token
+    p.update()
+
+    return UnaryOperation(operator, p_factor_expression(p))
+
+def p_group_expression(p):
+    p.update()
+
+    # TODO update to expression statement? maybe
+    group = p_arithmetic_expression(p)
+    if p.current_token == 'RPAREN':
+        p.update()
+        return group
+    
+    return p_error(p, 'RPAREN')
+
+def p_atom(p):
+    token = p.current_token
+
+    if token == "ID":
+        p.update()
+        return Literal(token.value, token)
+    
+    if token == "INTEGER":
+        p.update()
+        return Number(token.value)
+    
+    return p_error(p, 'atom')
+

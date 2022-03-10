@@ -6,9 +6,9 @@
 
 class Node:
     def __repr__(self) -> str:
-        self.__str__()        
+        return self.__str__()        
 
-    def _eval(self):
+    def _eval(self, env, **kwargs):
         pass
 
 class Statement(Node):

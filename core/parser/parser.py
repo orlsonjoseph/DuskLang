@@ -4,8 +4,7 @@
 # Parser
 # ----------------------------------------------------------------------
 
-from core.config import EOF
-from core.lexer.tokens import Tokens
+from core.parser.fxs import p_program
 
 class Parser:
     def __init__(self, tokens) -> None:
@@ -21,5 +20,10 @@ class Parser:
         self.current_token = self.next_token
         self.next_token = next(self.tokens)
 
+        if self.current_token is None:
+            return False
+
+        return True
+
     def parse(self):
-        pass
+        return p_program(self)
