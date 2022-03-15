@@ -55,4 +55,4 @@ class Tokens:
     quote       = r'\"'
 
     # Punctuation
-    punctuation = [t_PLUS, t_MINUS, t_EQUALS, t_SEMI, t_COLON]
+    punctuation = [t_PLUS, t_MINUS, t_EQUALS, t_SEMI, t_COLON, t_RBRACKET, t_LBRACKET]

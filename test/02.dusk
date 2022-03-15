@@ -1,4 +1,6 @@
 # Variable Initialization
 # Let is solely initialization
+
+let dob: int; # Undefined
 let age: int = 22;
 age + 1;

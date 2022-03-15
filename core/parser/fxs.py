@@ -4,7 +4,8 @@
 # Abstract Syntactic Tree
 # ----------------------------------------------------------------------
 
-from core.ast.ast import AssignStatement, BinaryOperation, Block, Float, LetStatement, Literal, Number, Program, String, TypeIdentifier, UnaryOperation
+from core.ast.ast import AssignStatement, BinaryOperation, Block, Float, LetStatement, Literal, Number, Program, String, TypeIdentifier, UnaryOperation, Undefined
+
 from core.config import EOF
 from core.exceptions import ParsingError
 
@@ -50,6 +51,7 @@ def p_statement(p):
 
 def p_let_statement(p):
     # let_statement : LET ID COLON type_identifier EQUALS expression_statement SEMI
+    #               : LET ID COLON type_identifier SEMI
     p.update()
     name = p_literal(p)
 
@@ -62,6 +64,9 @@ def p_let_statement(p):
 
             assign = p_expression_statement(p)
             return LetStatement(name, type, assign)
+        elif p.current_token == 'SEMI':
+            # no skip SEMI
+            return LetStatement(name, type, Undefined())
         else:
             return p_error(p, 'EQUALS')
     else:
@@ -158,7 +163,17 @@ def p_type_identifier(p):
         type = p.current_token.type
         p.update()
 
-        return TypeIdentifier(type)
+        # Array
+        if p.current_token == 'LBRACKET':
+            p.update()
+
+            if p.current_token == 'RBRACKET':
+                p.update()
+                return TypeIdentifier(type, array=True)
+
+            return p_error(p, 'RBRACKET')
+        else:
+            return TypeIdentifier(type)
 
     return p_error(p, 'type identifer')
 

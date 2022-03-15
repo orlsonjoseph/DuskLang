@@ -4,8 +4,6 @@
 # Abstract Syntactic Tree
 # ----------------------------------------------------------------------
 
-# TODO token for position
-
 from core.ast.base import Statement, Expression
 from core.exceptions import DuskNameError, DuskTypeError
 
@@ -95,6 +93,11 @@ class BinaryOperation(Expression):
 
         x, y = self.left._eval(env), self.right._eval(env)
 
+         # is not None
+        if x is None or y is None:
+            raise ValueError(
+                f"Undefined value at operands. (Line {self.operator.linepos})")
+
         # Type check
         if not Typing.compare(x, y):
             raise DuskTypeError(
@@ -153,6 +156,21 @@ class Literal(Expression):
 
         return value
 
+class TypeIdentifier(Expression):
+    def __init__(self, type, array=False) -> None:
+        super().__init__()
+
+        self.type = type
+        if array: self.array = True
+
+    def __str__(self) -> str:
+        return f"Type <{self.type.upper()}>"
+    
+    def _eval(self, env):
+        super()._eval(env)
+
+        return f"Array<{self.type}>" if self.array else self.type
+
 class Number(Expression):
     def __init__(self, value) -> None:
         super().__init__()
@@ -195,16 +213,16 @@ class String(Expression):
 
         return str(self.value)
 
-class TypeIdentifier(Expression):
-    def __init__(self, type) -> None:
+class Undefined(Expression):
+    def __init__(self) -> None:
         super().__init__()
 
-        self.type = type
+        self.value = 'undefined'
 
     def __str__(self) -> str:
-        return f"Type <{self.type.upper()}>"
-    
+        return self.value
+
     def _eval(self, env):
         super()._eval(env)
 
-        return self.type
+        return None

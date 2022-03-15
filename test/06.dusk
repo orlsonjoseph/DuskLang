@@ -1,0 +1,3 @@
+# Dynamic Arrays
+let colors:int[]; 
+# let companies:str[] = [ "Meta", "Apple", "Netflix", "Google", "Amazon"];
