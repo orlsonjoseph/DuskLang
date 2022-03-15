@@ -4,7 +4,6 @@
 # Lexer
 # ----------------------------------------------------------------------
 
-from queue import Empty
 import re
 
 from core.lexer.tokens import Tokens as library

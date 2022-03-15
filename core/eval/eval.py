@@ -27,10 +27,10 @@ class Eval:
     def run(self):
         self.ast = self.decorate()
 
-        for statement in self.ast.body:
+        for i, statement in enumerate(self.ast.body):
             output = statement._eval(self.environment)
 
             if self.debug:
-                print(output)
+                print(f"STMT[{i}] > {output}")
 
         

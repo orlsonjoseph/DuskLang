@@ -26,13 +26,15 @@ def p_program(p):
 def p_statement_list(p):
     # statement_list: statement SEMI statement_list
     #               | statement SEMI
-    statement = p_statement(p)
+    statement = [p_statement(p)]
     if p.current_token == 'SEMI':
         if p.next_token != EOF:
             p.update()
-            return [statement].extend(p_statement_list(p))
+
+            statement.extend(p_statement_list(p))
+            return statement
         else:
-            return [statement]
+            return statement
 
     return p_error(p, 'SEMI')
 
@@ -64,13 +66,6 @@ def p_let_statement(p):
             return p_error(p, 'EQUALS')
     else:
         return p_error(p, 'COLON')
-
-    if not p.current_token == 'EQUALS': p_error(p, 'EQUALS')
-    
-    # Skip equal sign
-    p.update() 
-
-    return 
 
 def p_expression_statement(p):
     # expression_statement : arithmetic_expression
@@ -116,16 +111,19 @@ def p_factor_expression(p):
     if p.current_token.type in ('PLUS', 'MINUS'):
         return p_unary_operator(p)
 
-    if p.current_token == 'LPAREN':
-        return p_group_expression(p)
-        
-    return p_atom(p)
+    return p_primary_expression(p)
 
 def p_unary_operator(p):
     operator = p.current_token
     p.update()
 
     return UnaryOperation(operator, p_factor_expression(p))
+
+def p_primary_expression(p):    
+    if p.current_token == 'LPAREN':
+        return p_group_expression(p)
+
+    return p_atom(p)
 
 def p_group_expression(p):
     # group_expression : LPAREN arithmetic_expression RPAREN

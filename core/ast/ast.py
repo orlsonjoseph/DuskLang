@@ -9,6 +9,8 @@
 from core.ast.base import Statement, Expression
 from core.exceptions import DuskNameError, DuskTypeError
 
+from core.typing import Typing
+
 class Program(Statement):
     def __init__(self, body) -> None:
         super().__init__()
@@ -65,9 +67,9 @@ class BinaryOperation(Expression):
         super()._eval(env)
 
         x, y = self.left._eval(env), self.right._eval(env)
-        
+
         # Type check
-        if not isinstance(x, y.__class__):
+        if not Typing.compare(x, y):
             raise DuskTypeError(
                 "Unable to use operator on {x.__class__} and {y.__class__}. (Line {self.operator.linepos})")
 
@@ -104,14 +106,19 @@ class Literal(Expression):
     def __str__(self) -> str:
         return f"Literal '{self.name}'"
 
-    def _eval(self, env, exists = False):
+    def _eval(self, env):
         super()._eval(env)
 
-        if exists:
-            if self.name not in env:
-                raise DuskNameError(f"Name '{self.name}' not defined. (Line {self.token.linepos})")
-        # TODO retrieve variable
-        return self.name
+        # Evaluating a literal always seeks out the value
+        if self.name not in env:
+            raise DuskNameError(f"Name '{self.name}' not defined. (Line {self.token.linepos})")
+        
+        value, _ = env[self.name]
+
+        if isinstance(value, Expression):
+            return value._eval(env)
+
+        return value
 
 class Number(Expression):
     def __init__(self, value) -> None:
