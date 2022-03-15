@@ -98,13 +98,19 @@ class BinaryOperation(Expression):
         # Type check
         if not Typing.compare(x, y):
             raise DuskTypeError(
-                "Unable to use operator on {x.__class__} and {y.__class__}. (Line {self.operator.linepos})")
+                f"Unable to use operator on {x} and {y}. (Line {self.operator.linepos})")
 
         if self.operator == "PLUS":
             return x + y
 
+        if self.operator == "MINUS":
+            return x - y
+
         if self.operator == "MULT":
             return x * y
+
+        if self.operator == "DIV":
+            return x / y
 
 class UnaryOperation(Expression):
     def __init__(self, operator, right) -> None:
@@ -160,6 +166,20 @@ class Number(Expression):
         super()._eval(env)
 
         return int(self.value)
+
+class Float(Expression):
+    def __init__(self, value) -> None:
+        super().__init__()
+
+        self.value = value
+
+    def __str__(self) -> str:
+        return f"Float <{self.value}>"
+
+    def _eval(self, env):
+        super()._eval(env)
+
+        return float(self.value)
 
 class String(Expression):
     def __init__(self, value) -> None:

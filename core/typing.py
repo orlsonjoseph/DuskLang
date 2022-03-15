@@ -17,9 +17,12 @@ class Typing:
         if isinstance(var, int):
             return 'int'
         
+        if isinstance(var, float):
+            return 'float'
+
         if isinstance(var, str):
             return 'str'
-            
+
         return None
 
     def compare(var_a, var_b):

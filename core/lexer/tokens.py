@@ -10,7 +10,7 @@ from email.quoprimime import quote
 class Tokens:
 
     # Reserved words
-    reserved = ['int', 'let', 'str']
+    reserved = ['float', 'int', 'let', 'str']
 
     # Literals (identifier)
     t_ID        = r'[A-Za-z_][A-Za-z0-9_]*',

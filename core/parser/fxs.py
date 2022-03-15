@@ -4,7 +4,7 @@
 # Abstract Syntactic Tree
 # ----------------------------------------------------------------------
 
-from core.ast.ast import AssignStatement, BinaryOperation, Block, LetStatement, Literal, Number, Program, String, TypeIdentifier, UnaryOperation
+from core.ast.ast import AssignStatement, BinaryOperation, Block, Float, LetStatement, Literal, Number, Program, String, TypeIdentifier, UnaryOperation
 from core.config import EOF
 from core.exceptions import ParsingError
 
@@ -154,7 +154,7 @@ def p_type_identifier(p):
     # type_identifier : INT
     #                 : STR
     #                 : literal
-    if p.current_token in ['INT', 'STR']:
+    if p.current_token in ['INT', 'FLOAT', 'STR']:
         type = p.current_token.type
         p.update()
 
@@ -171,7 +171,11 @@ def p_atom(p):
     if token == 'INTEGER':
         p.update()
         return Number(token.value)
-    
+
+    if token == 'FLOAT':
+        p.update()
+        return Float(token.value)
+
     if token == 'STRING':
         p.update()
         return String(token.value)
