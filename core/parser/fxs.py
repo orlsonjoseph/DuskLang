@@ -4,7 +4,7 @@
 # Abstract Syntactic Tree
 # ----------------------------------------------------------------------
 
-from core.ast.ast import BinaryOperation, Block, LetStatement, Literal, Number, Program, TypeIdentifier, UnaryOperation
+from core.ast.ast import AssignStatement, BinaryOperation, Block, LetStatement, Literal, Number, Program, String, TypeIdentifier, UnaryOperation
 from core.config import EOF
 from core.exceptions import ParsingError
 
@@ -74,10 +74,23 @@ def p_expression_statement(p):
     if p.current_token == 'LBRACE':
         return p_block_statement(p)
 
+    if p.next_token == 'EQUALS':
+        return p_assignment_expression(p)
+
     expression = p_arithmetic_expression(p)
     return expression
 
-# TODO rename group to Block 
+def p_assignment_expression(p):
+    # assignment_expression : ID EQUALS expression_statement SEMI
+    name = p_literal(p)
+    if p.current_token == 'EQUALS':
+        p.update()
+
+        assign = p_expression_statement(p)
+        return AssignStatement(name, assign)
+
+    return p_error(p, 'EQUALS')
+
 def p_block_statement(p):
     # block_statement : LBRACE expression_statement RBRACE
     p.update()
@@ -139,8 +152,9 @@ def p_group_expression(p):
 
 def p_type_identifier(p):
     # type_identifier : INT
+    #                 : STR
     #                 : literal
-    if p.current_token in ['INT']:
+    if p.current_token in ['INT', 'STR']:
         type = p.current_token.type
         p.update()
 
@@ -158,10 +172,17 @@ def p_atom(p):
         p.update()
         return Number(token.value)
     
+    if token == 'STRING':
+        p.update()
+        return String(token.value)
+
     return p_error(p, 'atom')
 
 def p_literal(p):
     token = p.current_token
 
-    p.update()
-    return Literal(token.value, token)
+    if token == 'ID':
+        p.update()
+        return Literal(token.value, token)
+
+    return p_error(p, 'ID')

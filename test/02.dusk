@@ -1,4 +1,4 @@
-# Variable Assignment
-# Let is solely assignment
+# Variable Initialization
+# Let is solely initialization
 let age: int = 22;
 age + 1;

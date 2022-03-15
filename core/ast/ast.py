@@ -32,7 +32,6 @@ class Block(Statement):
     def __str__(self) -> str:
         return f"Block - {self.body}"
 
-# TODO refactor; I am tired and code is ambiguous though working
 class LetStatement(Statement):
     def __init__(self, label, type, value) -> None:
         super().__init__()
@@ -50,9 +49,37 @@ class LetStatement(Statement):
             raise DuskNameError(
                 f"Name {self.label} already exists. (Line {self.label.linepos}")
                 
-        env[self.label.name] = (self.value, self.type)
+        env[self.label.name] = [self.value, self.type]
         return (self.label.name, self.value._eval(env), self.type._eval(env))
 
+class AssignStatement(Statement):
+    def __init__(self, label, value) -> None:
+        super().__init__()
+
+        self.label, self.value = label, value
+    
+    def __str__(self) -> str:
+        return f"Assign [{self.label}] {self.value}"
+
+    def _eval(self, env):
+        super()._eval(env)
+
+        if self.label.name not in env:
+            raise DuskNameError(
+                f"Name {self.label} has not been initialized. (Line {self.label.linepos}")
+
+        value = self.value._eval(env)
+
+        if not Typing.compare(env[self.label.name], value):
+            raise DuskTypeError(
+                "Unable to assign type TODO to {self.label.name}. (Line {self.operator.linepos})")
+
+        # Only value is updated - type remains intact
+        _, d_type = env[self.label.name]
+        env[self.label.name] = [value, d_type]
+
+        return (self.label.name, value, d_type._eval(env))
+        
 class BinaryOperation(Expression):
     def __init__(self, left, right, operator) -> None:
         super().__init__()
@@ -133,6 +160,20 @@ class Number(Expression):
         super()._eval(env)
 
         return int(self.value)
+
+class String(Expression):
+    def __init__(self, value) -> None:
+        super().__init__()
+
+        self.value = value.strip('\"')
+
+    def __str__(self) -> str:
+        return f"String <{self.value}>"
+
+    def _eval(self, env):
+        super()._eval(env)
+
+        return str(self.value)
 
 class TypeIdentifier(Expression):
     def __init__(self, type) -> None:

@@ -4,10 +4,13 @@
 # Token specifications for symbols in Dusk.
 # ----------------------------------------------------------------------
 
+from email.quoprimime import quote
+
+
 class Tokens:
 
     # Reserved words
-    reserved = ['int', 'let']
+    reserved = ['int', 'let', 'str']
 
     # Literals (identifier)
     t_ID        = r'[A-Za-z_][A-Za-z0-9_]*',
@@ -47,6 +50,9 @@ class Tokens:
     
     # Newline
     newline     = r'\n'
+
+    # Quote
+    quote       = r'\"'
 
     # Punctuation
     punctuation = [t_PLUS, t_MINUS, t_EQUALS, t_SEMI, t_COLON]

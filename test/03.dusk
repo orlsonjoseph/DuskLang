@@ -1,0 +1,3 @@
+# Variable assignment
+let age:int = 21;
+age = age + 4;

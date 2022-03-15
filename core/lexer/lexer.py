@@ -59,6 +59,7 @@ class Lexer:
 
     def tokenize(self, stream):
         lexeme, predicate = EMPTY_STRING, None
+        in_quote = False
 
         # Add newline to input to process last characters
         stream.input += " "
@@ -77,6 +78,9 @@ class Lexer:
             if re.fullmatch(library.comment, character):
                 predicate = library.newline
                 continue
+            
+            if re.fullmatch(library.quote, character):
+                in_quote = not in_quote
 
             # Is this character a punctuation / delimiter
             punctuation = any(
@@ -84,7 +88,7 @@ class Lexer:
                         for pattern in library.punctuation)
 
             # If whitespace
-            if (re.fullmatch(library.whitespace, character) or punctuation):
+            if (re.fullmatch(library.whitespace, character) or punctuation) and not in_quote:
                 token, lexeme = self._process(lexeme, stream)
                 if token: self.tokens.append(token)
                 
