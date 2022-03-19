@@ -1,0 +1,4 @@
+# Array Indexing and Operations
+
+let colors:array;
+colors = ["red"];

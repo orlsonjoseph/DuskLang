@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 
-# Author: Orlson Joseph
+# ----------------------------------------------------------------------
+# dusk.py
+#
+# Entry point for Dusk source code interpreter
+# ----------------------------------------------------------------------
 
 import sys
 
 from argparse import ArgumentParser, ArgumentError
 
-from core.exceptions import UnsupportedException
-from core.config import EXTENSION
+from core.lexer import Lexer
+from core.parser import Parser
 
-from core.lexer.lexer import Lexer
-from core.lexer.stream import Stream
-from core.parser.parser import Parser
-from core.eval.eval import Eval
+from core.resources.exceptions import UnsupportedException
+from core.resources.constants import EXTENSION
+from core.resources.stream import Stream
 
 # Limit Python builtin traceback system for clearer exceptions
 # sys.tracebacklimit = 0
@@ -29,6 +32,9 @@ class Dusk:
                 f"{self.file} has unsupported extensions. " + 
                 f"The only supported extension is ({EXTENSION})")
 
+        # Interpreter variables
+        self.environment = {}
+
     def _read(self):
         with open(self.file, "r") as fh:
             source = fh.read()
@@ -37,7 +43,7 @@ class Dusk:
             
         return source
 
-    def execute(self):
+    def execute(self, debug = False):
         # Read source file contents
         self.source = self._read()
 
@@ -49,17 +55,16 @@ class Dusk:
         self.lexer.tokenize(self.stream)
         self.tokens = self.lexer.add_EOF_token()
 
-        print(self.tokens)
+        if debug: print(self.tokens)
 
         # Parser
         self.parser = Parser(self.tokens)
         self.ast = self.parser.parse()
 
-        print(self.ast)
+        if debug: print(self.ast)
         
         # Evaluator / Interpreter
-        self.interpreter = Eval(self.ast, True)
-        self.interpreter.run()
+        self.ast._eval(self.environment, debug=debug)
 
 if __name__ == "__main__":
     
@@ -81,4 +86,4 @@ if __name__ == "__main__":
         sys.exit(2)
 
     app = Dusk(file = arguments.file)
-    app.execute()
+    app.execute(debug = True)

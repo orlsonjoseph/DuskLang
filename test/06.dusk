@@ -1,3 +1,9 @@
 # Dynamic Arrays
-let colors:int[]; 
-# let companies:str[] = [ "Meta", "Apple", "Netflix", "Google", "Amazon"];
+let colors:array; 
+colors = ["blue"];
+
+let companies:array = ["Meta", "Apple", "Netflix", "Google", "Amazon"];
+
+# TODO builtin function that mutates Arrays
+# TODO array indexing including negative indexing
+# TODO array have their own ast representation
