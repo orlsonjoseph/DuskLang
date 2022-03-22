@@ -27,7 +27,7 @@ class Assign(Statement):
 
         _, d_type = env[self.label.name]
 
-        if d_type.type in ['ARRAY']:
+        if d_type.type in ['LIST']:
             value = [v._eval(env) for v in self.value]
             
         else:

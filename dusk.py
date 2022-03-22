@@ -66,6 +66,8 @@ class Dusk:
         # Evaluator / Interpreter
         self.ast._eval(self.environment, debug=debug)
 
+        if debug: print(self.environment)
+
 if __name__ == "__main__":
     
     # Create ArgumentParser

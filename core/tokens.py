@@ -7,7 +7,7 @@
 class Tokens:
 
     # Reserved words
-    reserved = ['array', 'float', 'int', 'let', 'str']
+    reserved = ['float', 'int', 'let', 'list', 'str']
 
     # Literals (identifier)
     t_ID        = r'[A-Za-z_][A-Za-z0-9_]*',

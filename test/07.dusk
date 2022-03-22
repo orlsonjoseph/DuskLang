@@ -1,4 +1,6 @@
-# Array Indexing and Operations
+# Structures
 
-let colors:array;
-colors = ["red"];
+struct Person = {
+    name: str,
+    age: int
+};

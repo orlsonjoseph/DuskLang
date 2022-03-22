@@ -1,0 +1,7 @@
+# Functions
+
+define add(x: int, y: int) = {
+    return x + y;
+}
+
+# Methods receive the structure as 1st argument

@@ -77,6 +77,7 @@ def p_expression_statement(p):
     # expression_statement : arithmetic_expression
     #                      | group_expression
     #                      | ... TODO
+
     if p.current_token == 'LBRACE':
         return p_block_statement(p)
     
@@ -85,6 +86,17 @@ def p_expression_statement(p):
 
     if p.current_token == 'LBRACKET':
         return p_atom_list(p)
+
+    if p.current_token == 'ID' and p.next_token == 'LBRACKET':
+        indexing = p_list_indexing(p)
+
+        if p.current_token == 'EQUALS':
+            p.update()
+
+            assign = p_expression_statement(p)
+            return Reassign(indexing, assign)
+        else:
+            return indexing
 
     expression = p_arithmetic_expression(p)
     return expression
@@ -159,13 +171,27 @@ def p_group_expression(p):
     
     return p_error(p, 'RPAREN')
 
+def p_list_indexing(p):
+    # list_indexing : literal LBRACKET expression_statement RBRACKET
+    label = p_literal(p)
+    if p.current_token == 'LBRACKET':
+        p.update()
+
+        index = p_expression_statement(p)
+        if p.current_token == 'RBRACKET':
+            p.update()
+
+            return Indexing(label, index)
+        return p_error(p, 'RBRACKET')
+    return p_error(p, 'LBRACKET')
+
 def p_type_identifier(p):
-    # type_identifier : ARRAY
-    #                 : FLOAT
+    # type_identifier : FLOAT
     #                 : INT
+    #                 : LIST
     #                 : STR
     
-    if p.current_token in ['ARRAY', 'FLOAT', 'INT', 'STR']:
+    if p.current_token in ['FLOAT', 'INT', 'LIST', 'STR']:
         type = p.current_token.type
         p.update()
 

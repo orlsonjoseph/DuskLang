@@ -1,9 +1,15 @@
-# Dynamic Arrays
-let colors:array; 
+# Lists
+let colors:list; 
 colors = ["blue"];
 
-let companies:array = ["Meta", "Apple", "Netflix", "Google", "Amazon"];
+let companies:list = ["Facebook", "Apple", "Netflix", "Google", "Amazon"];
 
-# TODO builtin function that mutates Arrays
-# TODO array indexing including negative indexing
-# TODO array have their own ast representation
+companies[0];
+
+companies[0] = "Meta";
+companies[-1] = "Discord";
+
+companies[1 + 2] = "Alphabet";
+
+# TODO builtin function that mutates Lists
+# TODO list have their own ast representation

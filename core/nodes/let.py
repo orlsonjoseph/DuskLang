@@ -28,7 +28,7 @@ class Let(Statement):
         type = self.type._eval(env)
         
         # TODO single assignment to arrays
-        if type in ['ARRAY'] and isinstance(self.value, list):
+        if type in ['LIST'] and isinstance(self.value, list):
             value = [v._eval(env) for v in self.value]
         else:
             value = self.value._eval(env)
