@@ -2,5 +2,5 @@
 # Let is solely initialization
 
 let dob: int; # Undefined
-let age: int = 22;
-age + 1;
+# let age: int = 22;
+# age + 1;

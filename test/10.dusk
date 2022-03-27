@@ -1,0 +1,12 @@
+# Flow Control Statements & Booleans
+
+let age: int = 17;
+let legal: bool;
+
+if age >= 18 {
+    legal = true;
+} else { legal = false; }
+
+# or and not
+
+# Limitation of benchmark suite

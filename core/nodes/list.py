@@ -10,11 +10,13 @@ from core.resources.exceptions import NameError, TypeError
 from core.resources.typing import Typing
 
 class Indexing(Statement):
-    def __init__(self, label, index) -> None:
+    def __init__(self, label, index, linepos) -> None:
         super().__init__()
 
         self.label, self.index = label, index
         self.computed_index = None
+
+        self.linepos = linepos
 
     def __str__(self) -> str:
         return f"Indexing [{self.label}, {self.index}]"
@@ -24,7 +26,7 @@ class Indexing(Statement):
 
         if self.label.name not in env:
             raise NameError(
-                f"Name {self.label} has not been initialized. (Line {self.label.linepos}")
+                f"Name {self.label} has not been initialized. (Line {self.linepos}")
         
         _, d_type = env[self.label.name]
 
@@ -32,13 +34,17 @@ class Indexing(Statement):
             self.computed_index = self.index._eval(env)
 
             if Typing.type_of(self.computed_index) == 'int':
+                if self.computed_index >= len(env[self.label.name][0]):
+                    raise IndexError(
+                        f"List index out of range. (Line {self.linepos})")
+                        
                 return env[self.label.name][0][self.computed_index]
            
             raise TypeError(
-                f"List indices must be integers. (Line {self.index.linepos})")    
+                f"List indices must be integers. (Line {self.linepos})")    
 
         raise TypeError(
-            f"Indexing operation applies only to lists. (Line {self.label.linepos})")
+            f"Indexing operation applies only to lists. (Line {self.linepos})")
 
     def _reassign(self, value, env):
         # Evaluation to catch potential errors

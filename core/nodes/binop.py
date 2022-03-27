@@ -40,8 +40,11 @@ class BinOp(Expression):
         if self.operator == "MINUS":
             return x - y
 
-        if self.operator == "MULT":
+        if self.operator == "TIMES":
             return x * y
 
-        if self.operator == "DIV":
+        if self.operator == "DIVIDE":
             return x / y
+
+        if self.operator == "MODULO":
+            return x % y

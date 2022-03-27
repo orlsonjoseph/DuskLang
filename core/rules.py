@@ -4,12 +4,14 @@
 # Abstract Syntactic Tree
 # ----------------------------------------------------------------------
 
+# TODO linepos to every Node
+
 from core.nodes import *
 
 from core.resources.constants import EOF
 from core.resources.exceptions import ParsingError
 
-OPERATORS = ['PLUS', 'MINUS', 'MULT', 'DIV']
+OPERATORS = ['PLUS', 'MINUS', 'TIMES', 'DIVIDE']
 
 def p_error(p, expected):
     raise ParsingError(
@@ -25,20 +27,16 @@ def p_program(p):
     return p_error(p, EOF)
 
 def p_statement_list(p):
-    # statement_list: statement SEMI statement_list
-    #               | statement SEMI
+    # statement_list: statement statement_list EOF
+    #               | statement EOF
+
     statement = [p_statement(p)]
 
-    if p.current_token == 'SEMI':
-        if p.next_token != EOF:
-            p.update()
+    if p.next_token == EOF or p.current_token == 'RBRACE':
+        return statement
 
-            statement.extend(p_statement_list(p))
-            return statement
-        else:
-            return statement
-
-    return p_error(p, 'SEMI')
+    statement.extend(p_statement_list(p))
+    return statement
 
 def p_statement(p):
     # statement : expression_statement
@@ -58,31 +56,57 @@ def p_let_statement(p):
 
     if p.current_token == 'COLON':
         p.update()
-
         type = p_type_identifier(p)
+
         if p.current_token == 'EQUALS':
             p.update()
-
             assign = p_expression_statement(p)
+
+            p.update() # skip SEMI
             return Let(name, type, assign)
-        elif p.current_token == 'SEMI':
-            # no skip SEMI
+
+        if p.current_token == 'SEMI':
+            p.update() # skip SEMI
+
             return Let(name, type, Undefined())
         else:
             return p_error(p, 'EQUALS')
     else:
         return p_error(p, 'COLON')
 
+def p_if_statement(p):
+    # if_statement : IF conditional_expression block
+    #              : IF conditional_expression block ELSE block
+
+    p.update()
+    
+    condition = p_conditional_expression(p)
+
+    if p.current_token == 'LBRACE':
+        block = p_block_statement(p)
+
+        if p.current_token == 'ELSE':
+            p.update()
+
+            else_block = p_block_statement(p)
+
+            return If(condition, block, else_block)
+
+        return If(condition, block)
+    return p_error(p, 'LBRACE')
+
 def p_expression_statement(p):
     # expression_statement : arithmetic_expression
     #                      | group_expression
     #                      | ... TODO
-
+    
     if p.current_token == 'LBRACE':
         return p_block_statement(p)
     
     if p.next_token == 'EQUALS':
-        return p_assignment_expression(p)
+        expr = p_assignment_expression(p)
+        p.update() # skip semi
+        return expr
 
     if p.current_token == 'LBRACKET':
         return p_atom_list(p)
@@ -98,16 +122,21 @@ def p_expression_statement(p):
         else:
             return indexing
 
+    if p.current_token == 'IF':
+        return p_if_statement(p)
+
     expression = p_arithmetic_expression(p)
     return expression
 
 def p_assignment_expression(p):
     # assignment_expression : ID EQUALS expression_statement SEMI
     name = p_literal(p)
+
     if p.current_token == 'EQUALS':
         p.update()
-
         assign = p_expression_statement(p)
+
+        # p.update() # skip SEMI
         return Assign(name, assign)
 
     return p_error(p, 'EQUALS')
@@ -116,11 +145,16 @@ def p_block_statement(p):
     # block_statement : LBRACE expression_statement RBRACE
     p.update()
 
-    group = Block(body = p_expression_statement(p))
+    # Empty braces
     if p.current_token == 'RBRACE':
-        return group
-    
-    return p_error(p, 'RBRACE')
+        block = None
+    else:
+        block = p_statement_list(p)
+        if p.current_token != 'RBRACE':
+            return p_error(p, 'RBRACE')
+
+    p.update()
+    return Block(body = block)
 
 # Helper function
 def binary_operator(p, fx, operators):
@@ -139,7 +173,7 @@ def p_arithmetic_expression(p):
     return binary_operator(p, p_term_expression, ('PLUS', 'MINUS'))
 
 def p_term_expression(p):
-    return binary_operator(p, p_factor_expression, ('MULT', 'DIV'))
+    return binary_operator(p, p_factor_expression, ('TIMES', 'DIVIDE'))
 
 def p_factor_expression(p):
     if p.current_token.type in ('PLUS', 'MINUS'):
@@ -152,6 +186,27 @@ def p_unary_operator(p):
     p.update()
 
     return UnaryOp(operator, p_factor_expression(p))
+
+def p_conditional_expression(p):
+    left = p_expression_statement(p)
+
+    if p.current_token in ['LT', 'GT', 'EQUALS']:
+        operator = p.current_token
+        p.update()
+
+        if p.current_token == 'EQUALS':
+            p.update()
+
+            if len(operator.type) == 2:
+                operator.type = operator.type.replace('T', 'E')
+            else: operator.type = 'EQ'
+            
+            operator.value += '='
+
+        if not p.current_token == 'LBRACE':
+            right = p_expression_statement(p)
+        
+    return Condition(operator, left, right if right else None)
 
 def p_primary_expression(p):    
     if p.current_token == 'LPAREN':
@@ -181,7 +236,7 @@ def p_list_indexing(p):
         if p.current_token == 'RBRACKET':
             p.update()
 
-            return Indexing(label, index)
+            return Indexing(label, index, p.current_token.linepos)
         return p_error(p, 'RBRACKET')
     return p_error(p, 'LBRACKET')
 
@@ -191,7 +246,7 @@ def p_type_identifier(p):
     #                 : LIST
     #                 : STR
     
-    if p.current_token in ['FLOAT', 'INT', 'LIST', 'STR']:
+    if p.current_token in ['FLOAT', 'INT', 'LIST', 'STR', 'BOOL']:
         type = p.current_token.type
         p.update()
 
@@ -216,6 +271,10 @@ def p_atom(p):
     if token == 'STRING':
         p.update()
         return String(token.value)
+
+    if token in ['TRUE', 'FALSE']:
+        p.update()
+        return Boolean(True if token == 'TRUE' else False)
 
     return p_error(p, 'atom')
 

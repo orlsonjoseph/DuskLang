@@ -4,10 +4,14 @@
 # Token specifications for symbols in Dusk.
 # ----------------------------------------------------------------------
 
+from re import T
+
+
 class Tokens:
 
     # Reserved words
-    reserved = ['float', 'int', 'let', 'list', 'str']
+    reserved = ['bool', 'else', 'false', 'float', 'if', 'int', 'let', 
+                'list', 'str', 'true']
 
     # Literals (identifier)
     t_ID        = r'[A-Za-z_][A-Za-z0-9_]*',
@@ -20,11 +24,21 @@ class Tokens:
     # Operators
     t_PLUS      = r'\+',
     t_MINUS     = r'-',
-    t_MULT      = r'\*',
-    t_DIV       = r'/',
+    t_TIMES     = r'\*',
+    t_DIVIDE    = r'/',
+    t_MODULE    = r'%',
 
     # Assignment
     t_EQUALS    = r'=',
+
+    # Conditional Operators
+    t_LT        = r'<'
+    # t_LE      = r'<='
+    t_GT        = r'>'
+    # t_GE      = r'>='
+    t_NT        = r'!'
+    # t_NE      = r'!='
+    # t_EQ        = r'=='
 
     # Delimiters ( ) [ ] { } , . =
 
@@ -53,4 +67,5 @@ class Tokens:
 
     # Punctuation
     punctuation = [
-        t_PLUS, t_MINUS, t_EQUALS, t_SEMI, t_COLON, t_RBRACKET, t_LBRACKET, t_COMMA]
+        t_PLUS, t_MINUS, t_EQUALS, t_SEMI, t_COLON,
+        t_RBRACKET, t_LBRACKET, t_RBRACE, t_LBRACE, t_COMMA]

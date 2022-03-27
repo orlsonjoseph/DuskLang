@@ -13,12 +13,15 @@ class Typing:
 
             if isinstance(d_type, Expression) and hasattr(d_type, 'type'):
                 return d_type.type.lower()
-        
-        if isinstance(var, int):
-            return 'int'
+
+        if isinstance(var, bool):
+            return 'bool'
         
         if isinstance(var, float):
             return 'float'
+
+        if isinstance(var, int):
+            return 'int'
 
         if isinstance(var, str):
             return 'str'

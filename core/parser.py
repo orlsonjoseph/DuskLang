@@ -18,9 +18,10 @@ class Parser:
 
     def update(self):
         self.current_token = self.next_token
-        self.next_token = next(self.tokens)
-
-        if self.current_token is None:
+        
+        try:
+            self.next_token = next(self.tokens)
+        except StopIteration:
             return False
 
         return True

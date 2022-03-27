@@ -14,3 +14,15 @@ class Block(Statement):
     
     def __str__(self) -> str:
         return f"Block - {self.body}"
+
+    def _eval(self, env, debug = False):
+        super()._eval(env)
+        
+        # TODO locals apply only to functions
+        for i, statement in enumerate(self.body):
+            output = statement._eval(env)
+
+            if debug:
+                print(f"\tSTMT[{i}] > {output}")
+
+        return 
