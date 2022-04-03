@@ -37,7 +37,7 @@ class Lexer:
         self.tokens = []
 
         # Retrieve rules and labels from tokens
-        self.rules = [(k, v[0]) 
+        self.rules = [(k, v) 
             for k, v in vars(library).items() if k.startswith('t_')]
 
     def _process(self, lexeme, stream):
@@ -56,8 +56,6 @@ class Lexer:
                     return Token(label, string, stream.get_position()), EMPTY_STRING
 
             # Error if we get here
-            print(lexeme, len(lexeme))
-
             line, _ = stream.get_position()
             raise SyntaxError(f"Invalid token <{lexeme}> on line {line}")
 
@@ -90,9 +88,18 @@ class Lexer:
 
             # Is this character a punctuation / delimiter
             punctuation = any(
-                    re.fullmatch(pattern[0], character or EMPTY_STRING)
+                    re.fullmatch(pattern, character or EMPTY_STRING)
                         for pattern in library.punctuation)
 
+            # If punctuation; handles composed operators
+            if punctuation:
+                split = any(
+                    re.fullmatch(pattern, character) for pattern in library.composed_operators)
+                
+                # 2nd half of composed operators is equals
+                if split and re.fullmatch(library.t_EQUALS[0], stream.peek()):
+                    character += stream.next()
+                    
             # If whitespace
             if (re.fullmatch(library.whitespace, character) or punctuation) and not in_quote:
                 token, lexeme = self._process(lexeme, stream)

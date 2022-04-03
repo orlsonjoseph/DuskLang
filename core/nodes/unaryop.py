@@ -17,9 +17,6 @@ class UnaryOp(Expression):
 
     def _eval(self, env):
         super()._eval(env)
-
-        if self.operator == 'PLUS':
-            return + self.right._eval(env)
-
-        if self.operator == 'MINUS':
-            return - self.right._eval(env)
+        
+        x = self.right._eval(env)
+        return eval(f"{self.operator.value} x")

@@ -11,7 +11,7 @@ from core.nodes import *
 from core.resources.constants import EOF
 from core.resources.exceptions import ParsingError
 
-OPERATORS = ['PLUS', 'MINUS', 'TIMES', 'DIVIDE']
+precedence = ['PLUS', 'MINUS', 'TIMES', 'DIVIDE',]
 
 def p_error(p, expected):
     raise ParsingError(
@@ -43,6 +43,8 @@ def p_statement(p):
     #           | let_statement
     #           | ... TODO
 
+    print("starting with", p.current_token)
+
     if p.current_token == "LET":
         return p_let_statement(p)
 
@@ -62,7 +64,7 @@ def p_let_statement(p):
             p.update()
             assign = p_expression_statement(p)
 
-            p.update() # skip SEMI
+            p.update() # skip semi
             return Let(name, type, assign)
 
         if p.current_token == 'SEMI':
@@ -75,8 +77,8 @@ def p_let_statement(p):
         return p_error(p, 'COLON')
 
 def p_if_statement(p):
-    # if_statement : IF conditional_expression block
-    #              : IF conditional_expression block ELSE block
+    # if_statement : IF expression block
+    #              : IF expression block ELSE block
 
     p.update()
     
@@ -88,6 +90,7 @@ def p_if_statement(p):
         if p.current_token == 'ELSE':
             p.update()
 
+            print("EXECUTE")
             else_block = p_block_statement(p)
 
             return If(condition, block, else_block)
@@ -102,10 +105,9 @@ def p_expression_statement(p):
     
     if p.current_token == 'LBRACE':
         return p_block_statement(p)
-    
+
     if p.next_token == 'EQUALS':
         expr = p_assignment_expression(p)
-        p.update() # skip semi
         return expr
 
     if p.current_token == 'LBRACKET':
@@ -125,18 +127,18 @@ def p_expression_statement(p):
     if p.current_token == 'IF':
         return p_if_statement(p)
 
-    expression = p_arithmetic_expression(p)
+    expression = p_conditional_expression(p)
     return expression
 
 def p_assignment_expression(p):
-    # assignment_expression : ID EQUALS expression_statement SEMI
+    # assignment_expression : ID EQUALS expression_statement
     name = p_literal(p)
 
     if p.current_token == 'EQUALS':
         p.update()
-        assign = p_expression_statement(p)
 
-        # p.update() # skip SEMI
+        assign = p_expression_statement(p)
+        p.update()
         return Assign(name, assign)
 
     return p_error(p, 'EQUALS')
@@ -149,6 +151,7 @@ def p_block_statement(p):
     if p.current_token == 'RBRACE':
         block = None
     else:
+        print("IN BLOCK", p.current_token)
         block = p_statement_list(p)
         if p.current_token != 'RBRACE':
             return p_error(p, 'RBRACE')
@@ -157,56 +160,53 @@ def p_block_statement(p):
     return Block(body = block)
 
 # Helper function
-def binary_operator(p, fx, operators):
-    left = fx(p)
+def binary_operator(p, peer, child, operator):
+    left = child(p)
 
-    while p.current_token.type in operators:
-        operator = p.current_token
+    while p.current_token.type in operator:
+        token = p.current_token
         p.update()
 
-        right = fx(p)
-        left = BinOp(left, right, operator)
+        right = peer(p)
+        left = BinOp(left, right, token)
 
     return left
 
-def p_arithmetic_expression(p):
-    return binary_operator(p, p_term_expression, ('PLUS', 'MINUS'))
-
-def p_term_expression(p):
-    return binary_operator(p, p_factor_expression, ('TIMES', 'DIVIDE'))
-
-def p_factor_expression(p):
-    if p.current_token.type in ('PLUS', 'MINUS'):
-        return p_unary_operator(p)
-
-    return p_primary_expression(p)
-
-def p_unary_operator(p):
-    operator = p.current_token
-    p.update()
-
-    return UnaryOp(operator, p_factor_expression(p))
-
 def p_conditional_expression(p):
-    left = p_expression_statement(p)
+    return p_inclusive_or_expression(p)
 
-    if p.current_token in ['LT', 'GT', 'EQUALS']:
+def p_inclusive_or_expression(p):
+    return binary_operator(p, p_inclusive_or_expression, p_and_expression, ['OR'])
+
+def p_and_expression(p):
+    return binary_operator(p, p_and_expression, p_equality_expression, ['AND'])
+    
+def p_equality_expression(p):
+    return binary_operator(p, p_equality_expression, p_relational_expression, ['EQ', 'NE'])
+
+def p_relational_expression(p):
+    return binary_operator(p, p_relational_expression, p_additive_expression, ['LT', 'LE', 'GT', 'GE'])
+
+def p_additive_expression(p):
+    return binary_operator(p, p_additive_expression, p_multiplicative_expression, ['PLUS', 'MINUS'])
+
+def p_multiplicative_expression(p):
+    return binary_operator(p, p_multiplicative_expression, p_unary_expression, ['TIMES', 'DIVIDE', 'MODULE'])
+
+def p_unary_expression(p):
+    if p.current_token in ['PLUS', 'MINUS', 'NOT']:
         operator = p.current_token
         p.update()
 
-        if p.current_token == 'EQUALS':
-            p.update()
+        return UnaryOp(operator, p_unary_expression(p))
 
-            if len(operator.type) == 2:
-                operator.type = operator.type.replace('T', 'E')
-            else: operator.type = 'EQ'
-            
-            operator.value += '='
+    return p_postfix_expression(p)
 
-        if not p.current_token == 'LBRACE':
-            right = p_expression_statement(p)
-        
-    return Condition(operator, left, right if right else None)
+def p_postfix_expression(p):
+    if p.next_token == 'LPAREN':
+        pass # function call
+    
+    return p_primary_expression(p)
 
 def p_primary_expression(p):    
     if p.current_token == 'LPAREN':
@@ -218,8 +218,7 @@ def p_group_expression(p):
     # group_expression : LPAREN arithmetic_expression RPAREN
     p.update()
 
-    # TODO update to expression statement? maybe
-    group = p_arithmetic_expression(p)
+    group = p_conditional_expression(p)
     if p.current_token == 'RPAREN':
         p.update()
         return group
@@ -239,7 +238,7 @@ def p_list_indexing(p):
             return Indexing(label, index, p.current_token.linepos)
         return p_error(p, 'RBRACKET')
     return p_error(p, 'LBRACKET')
-
+    
 def p_type_identifier(p):
     # type_identifier : FLOAT
     #                 : INT

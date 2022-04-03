@@ -15,4 +15,3 @@ let companies:list = ["Facebook", "Apple", "Netflix", "Google", "Amazon"];
 # companies[index] = "Dropbox";
 
 # TODO builtin function that mutates Lists
-# TODO list have their own ast representation

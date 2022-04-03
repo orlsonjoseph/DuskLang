@@ -8,7 +8,6 @@ from core.nodes.assign import Assign
 from core.nodes.binop import BinOp
 from core.nodes.block import Block
 from core.nodes.boolean import Boolean
-from core.nodes.condition import Condition
 from core.nodes.float import Float
 from core.nodes.ifs import If
 from core.nodes.let import Let

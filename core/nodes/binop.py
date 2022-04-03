@@ -34,17 +34,4 @@ class BinOp(Expression):
             raise TypeError(
                 f"Unable to use operator on {x} and {y}. (Line {self.operator.linepos})")
 
-        if self.operator == "PLUS":
-            return x + y
-
-        if self.operator == "MINUS":
-            return x - y
-
-        if self.operator == "TIMES":
-            return x * y
-
-        if self.operator == "DIVIDE":
-            return x / y
-
-        if self.operator == "MODULO":
-            return x % y
+        return eval(f"x {self.operator.value} y")
