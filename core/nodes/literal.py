@@ -17,15 +17,17 @@ class Literal(Expression):
     def __str__(self) -> str:
         return f"Literal '{self.name}'"
 
-    def _eval(self, env):
+    def _eval(self, env, **kwargs):
         super()._eval(env)
-
-        # Evaluating a literal always seeks out the value
+        
+        if "eval" in kwargs and not kwargs["eval"]: return self.name
+        
+        # Evaluating a literal always seeks out the value        
         if self.name not in env:
             raise NameError(f"Name '{self.name}' not defined. (Line {self.token.linepos})")
         
         value, _ = env[self.name]
-
+        
         if isinstance(value, Expression):
             return value._eval(env)
 

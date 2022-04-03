@@ -1,6 +1,8 @@
 # Structures
 
-struct Person = {
+struct Person {
     name: str,
     age: int
 };
+
+let me: Person

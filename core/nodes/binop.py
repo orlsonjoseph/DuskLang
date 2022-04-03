@@ -19,10 +19,10 @@ class BinOp(Expression):
     def __str__(self) -> str:
         return f"Binary Operation {self.operator.value} [{self.left}] [{self.right}]"
 
-    def _eval(self, env):
+    def _eval(self, env, **kwargs):
         super()._eval(env)
 
-        x, y = self.left._eval(env), self.right._eval(env)
+        x, y = self.left._eval(env, eval = True), self.right._eval(env, eval = True)
 
          # is not None
         if x is None or y is None:

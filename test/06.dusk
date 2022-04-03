@@ -4,14 +4,14 @@ colors = ["blue"];
 
 let companies:list = ["Facebook", "Apple", "Netflix", "Google", "Amazon"];
 
-# companies[0];
+companies[0];
 
-# companies[0] = "Meta";
-# companies[-1] = "Discord";
+companies[0] = "Meta";
+companies[-1] = "Discord";
  
-# companies[1 + 2] = "Alphabet";
+companies[1 + 2] = "Alphabet";
  
-# let index: int = 4;
-# companies[index] = "Dropbox";
+let index: int = 1;
+companies[index] = "Dropbox";
 
 # TODO builtin function that mutates Lists

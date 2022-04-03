@@ -8,7 +8,7 @@ class Tokens:
 
     # Reserved words
     reserved = ['and', 'bool', 'else', 'false', 'float', 'if', 'int', 'let', 
-                'list', 'not', 'or', 'str', 'true']
+                'list', 'not', 'or', 'str', 'true', 'while']
 
     # Literals (identifier)
     t_ID        = r'[A-Za-z_][A-Za-z0-9_]*'

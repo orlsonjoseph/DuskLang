@@ -6,38 +6,37 @@
 
 from core.nodes.__base__ import Statement
 
-from core.resources.exceptions import NameError, TypeError
+from core.resources.exceptions import TypeError
 from core.resources.typing import Typing
 
 class Assign(Statement):
-    def __init__(self, label, value) -> None:
+    def __init__(self, destination, expression, token) -> None:
         super().__init__()
 
-        self.label, self.value = label, value
-    
+        self.destination, self.expression = destination, expression
+        self.token = token
+        
     def __str__(self) -> str:
-        return f"Assign [{self.label}] {self.value}"
+        return f"Assign [{self.destination}] {self.expression}"
 
-    def _eval(self, env):
+    def _eval(self, env, **kwargs):
         super()._eval(env)
+        
+        # If Assign on Indexing; then override function
+        # INFO Workaround python passing by object call rather than ref
+        if type(self.destination).__name__ == 'Indexing':
+            return self.destination._eval(env, eval = True, target = self.expression)
 
-        if self.label.name not in env:
-            raise NameError(
-                f"Name {self.label} has not been initialized. (Line {self.label.linepos}")
+        name = self.destination._eval(env, eval = False)
+        
+        _, d_type = env[name]
+        value = self.expression._eval(env)
 
-        _, d_type = env[self.label.name]
-
-        if d_type.type in ['LIST']:
-            value = [v._eval(env) for v in self.value]
-            
-        else:
-            value = self.value._eval(env)
-             
-            if not Typing.compare(env[self.label.name], value):
+        if not d_type.type in ['LIST']:
+            if not Typing.compare(env[name], value):
                 raise TypeError(
-                    "Unable to assign type TODO to {self.label.name}. (Line {self.operator.linepos})")
+                    "Unable to assign type TODO to {name}. (Line {self.token.linepos})")
 
         # Only value is updated - type remains intact
-        env[self.label.name] = [value, d_type]
-
-        return (self.label.name, value, d_type._eval(env))
+        env[name] = [value, d_type]
+        return [name, value, d_type._eval(env)]

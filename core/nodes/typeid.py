@@ -15,7 +15,7 @@ class TypeId(Expression):
     def __str__(self) -> str:
         return f"Type <{self.type.upper()}>"
 
-    def _eval(self, env):
+    def _eval(self, env, **kwargs):
         super()._eval(env)
 
         return self.type

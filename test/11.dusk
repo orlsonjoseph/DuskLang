@@ -1,5 +1,5 @@
-let name:str = "Orlson";
+let count: int = 1;
 
-if name > "Orlson" {
-    name = name + " Aine";
+while count < 3 {
+    count = count + 1;
 }

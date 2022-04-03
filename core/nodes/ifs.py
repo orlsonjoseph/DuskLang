@@ -22,4 +22,4 @@ class If(Statement):
         to_execute = self.block if self.condition._eval(env) else self.else_block
 
         if to_execute is not None: to_execute._eval(env, debug)
-        return 
+        
