@@ -1,8 +1,15 @@
 # Structures
 
-struct Person {
-    name: str,
-    age: int
-};
+struct Book {
+    title: str,
+    isbn: int,
+    pages: list
+}
 
-let me: Person
+let my_book: Book;
+let credits: str = " by Toni Morrisson";
+
+my_book.title = "Beloved";
+my_book.pages = ["a", "b"];
+
+my_book.title = my_book.title + credits;

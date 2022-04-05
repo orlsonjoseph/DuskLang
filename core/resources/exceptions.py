@@ -28,3 +28,6 @@ class ValueError(Exception):
 
 class IndexError(Exception):
     pass
+
+class AttributeError(Exception):
+    pass

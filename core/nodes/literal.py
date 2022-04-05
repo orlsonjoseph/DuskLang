@@ -22,7 +22,10 @@ class Literal(Expression):
         
         if "eval" in kwargs and not kwargs["eval"]: return self.name
         
-        # Evaluating a literal always seeks out the value        
+        # Evaluating a literal always seeks out the value
+        if env is None:
+            raise Exception("oof")
+
         if self.name not in env:
             raise NameError(f"Name '{self.name}' not defined. (Line {self.token.linepos})")
         

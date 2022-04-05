@@ -6,13 +6,12 @@
 
 # TODO linepos to every Node
 
+from logging import root
 from core.nodes import *
 from core.nodes import binop
 
 from core.resources.constants import EOF
 from core.resources.exceptions import ParsingError
-
-precedence = ['PLUS', 'MINUS', 'TIMES', 'DIVIDE',]
 
 def p_error(p, expected):
     raise ParsingError(
@@ -24,7 +23,6 @@ def p_program(p):
 
     if p.next_token == EOF:
         return Program(body = statement_list)
-
     return p_error(p, EOF)
 
 def p_statement_list(p):
@@ -33,8 +31,11 @@ def p_statement_list(p):
 
     statement = [p_statement(p)]
 
-    if p.next_token == EOF or p.current_token == 'RBRACE':
+    if p.next_token == EOF:
         return statement
+
+    if p.current_token == 'RBRACE':
+        p.update()
 
     statement.extend(p_statement_list(p))
     return statement
@@ -43,7 +44,7 @@ def p_statement(p):
     # statement : expression_statement
     #           | let_statement
     #           | ... TODO
-    
+
     if p.current_token == 'LET':
         return p_let_statement(p)
 
@@ -52,6 +53,9 @@ def p_statement(p):
   
     if p.current_token == 'WHILE':
         return p_while_statement(p)
+
+    if p.current_token == 'STRUCT':
+        return p_struct_statement(p)
 
     return p_expression(p)
 
@@ -77,11 +81,8 @@ def p_if_statement(p):
         if p.current_token == 'ELSE':
             p.update()
 
-            print("EXECUTE")
             else_block = p_compound_statement(p)
-
             return If(condition, block, else_block)
-
         return If(condition, block)
     return p_error(p, 'LBRACE')
 
@@ -96,6 +97,18 @@ def p_while_statement(p):
 
         return While(condition, block)
     return p_error(p, 'LBRACE')
+
+def p_struct_statement(p):
+    # struct_statement : STRUCT literal LBRACE declarator_list RBRACE
+    p.update()
+
+    name = p_literal(p)
+    if p.current_token == 'LBRACE':
+        p.update()
+
+        variables = p_declarator_list(p)
+        return Struct(name, variables, p.current_token)
+    return p_error(p, 'RBRACE')
 
 def p_expression(p):
     # expression : arithmetic_expression
@@ -117,7 +130,6 @@ def p_compound_statement(p):
     if p.current_token == 'RBRACE':
         block = None
     else:
-        print("IN BLOCK", p.current_token)
         block = p_statement_list(p)
         if p.current_token != 'RBRACE':
             return p_error(p, 'RBRACE')
@@ -187,6 +199,19 @@ def p_postfix_expression(p):
     if p.next_token == 'LPAREN':
         pass # argument_expr_list for function call
 
+    # Composed name (person.name)
+    # TODO composed name followed by indexing
+    if p.next_token == 'PERIOD':
+        prefix = p_literal(p)
+
+        while p.current_token == 'PERIOD':
+            p.update()
+
+            root = p_postfix_expression(p)
+            prefix = Prefix(prefix, root, p.current_token)
+
+        return prefix
+
     return p_primary_expression(p)
 
 def p_primary_expression(p):
@@ -219,6 +244,20 @@ def p_declarator(p):
     type = p_type_identifier(p)
     return Let(name, type, p.current_token)
 
+def p_declarator_list(p):
+    # declarator_list : declarator
+    #                 : declarator_list COMMA declarator
+    
+    expr = [p_declarator(p)]
+
+    while p.current_token in ['COMMA']:
+        p.update()
+
+        next = p_declarator(p)
+        expr = expr + [next]
+
+    return expr
+
 def p_type_identifier(p):
     # type_identifier : FLOAT
     #                 : INT
@@ -229,6 +268,11 @@ def p_type_identifier(p):
         type = p.current_token.type
         p.update()
 
+        return TypeId(type)
+
+    if p.current_token == 'ID':
+        type = p.current_token.value
+        p.update()
         return TypeId(type)
 
     return p_error(p, 'type identifer')
@@ -279,33 +323,3 @@ def p_literal(p):
 
 def p_empty(p):
     return Undefined()
-
-# TODO arg expr list
-# def p_atom_list(p):
-#     p.update() # Skip opening bracket OR comma
-
-#     values = [p_atom(p)]
-
-#     if p.current_token == 'COMMA':
-#         values.extend(p_atom_list(p))
-#         return values
-
-#     if p.current_token == 'RBRACKET':
-#         p.update()
-#         return values
-
-#     return p_error(p, 'COMMA')
-
-def p_list_indexing(p):
-    # list_indexing : literal LBRACKET expression_statement RBRACKET
-    label = p_literal(p)
-    if p.current_token == 'LBRACKET':
-        p.update()
-
-        index = p_expression(p)
-        if p.current_token == 'RBRACKET':
-            p.update()
-
-            return Indexing(label, index, p.current_token.linepos)
-        return p_error(p, 'RBRACKET')
-    return p_error(p, 'LBRACKET')

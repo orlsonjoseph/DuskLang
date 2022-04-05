@@ -22,17 +22,22 @@ class Assign(Statement):
     def _eval(self, env, **kwargs):
         super()._eval(env)
         
-        # If Assign on Indexing; then override function
+        # If assign on Indexing; then override function
         # INFO Workaround python passing by object call rather than ref
         if type(self.destination).__name__ == 'Indexing':
-            return self.destination._eval(env, eval = True, target = self.expression)
+            return self.destination._eval(env, eval=True, target=self.expression)
 
-        name = self.destination._eval(env, eval = False)
-        
+        name = self.destination._eval(env, eval=False)
+            
         _, d_type = env[name]
+        
+        # If assign on Prefix / Struct; then override function
+        if d_type.type in ['LOCALS']:
+            return self.destination._assign(env, target=self.expression)
+
         value = self.expression._eval(env)
 
-        if not d_type.type in ['LIST']:
+        if not d_type.type in ['LIST', 'STRUCT']:
             if not Typing.compare(env[name], value):
                 raise TypeError(
                     "Unable to assign type TODO to {name}. (Line {self.token.linepos})")

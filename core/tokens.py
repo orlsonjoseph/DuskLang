@@ -8,7 +8,7 @@ class Tokens:
 
     # Reserved words
     reserved = ['and', 'bool', 'else', 'false', 'float', 'if', 'int', 'let', 
-                'list', 'not', 'or', 'str', 'true', 'while']
+                'list', 'not', 'or', 'str', 'struct', 'true', 'while']
 
     # Literals (identifier)
     t_ID        = r'[A-Za-z_][A-Za-z0-9_]*'
@@ -69,5 +69,5 @@ class Tokens:
     # Punctuation
     punctuation = [
         t_SEMI, t_COLON, t_RBRACKET, t_LBRACKET, t_RPAREN, t_LPAREN,
-        t_RBRACE, t_LBRACE, t_COMMA, t_PLUS, t_MINUS
+        t_RBRACE, t_LBRACE, t_COMMA, t_PERIOD, t_PLUS, t_MINUS
         ] + composed_operators

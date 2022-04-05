@@ -4,7 +4,10 @@
 # Let (statement)
 # ----------------------------------------------------------------------
 
+from threading import local
+from core.nodes import struct
 from core.nodes.__base__ import Statement
+from core.nodes.typeid import TypeId
 
 from core.resources.exceptions import NameError
 
@@ -26,6 +29,24 @@ class Let(Statement):
         if label in env:
             raise NameError(
                 f"Name {label} already exists. (Line {self.token.linepos}")
-        
-        env[label] = [None, self.type]
+
+        if self.type.is_primitive():
+            env[label] = [None, self.type]
+        else:
+            # Structures
+            struct = self.type._eval(env).capitalize()
+            
+            if struct not in env:
+                raise NameError(
+                    f"Name {label} not defined. (Line {self.token.linepos}")
+
+            # Execute declaration statements
+            struct, _ = env[struct]
+
+            locals = {}
+            env[label] = [locals, TypeId('locals')]
+
+            for declaration in struct:
+                declaration._eval(locals)
+
         return label
