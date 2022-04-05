@@ -7,6 +7,8 @@
 from core.nodes.__base__ import Expression, Statement
 from core.nodes.typeid import TypeId
 
+import copy
+
 # Function Definition
 class Function(Statement):
     def __init__(self, name, parameters, block, token) -> None:
@@ -55,11 +57,26 @@ class Call(Expression):
 
         self.name, self.token = name, token
         self.parameters = parameters
-        
+
     def __str__(self) -> str:
-        return f"Call {self.name}"
+        return f"Call {self.name} {self.parameters}"
 
     def _eval(self, env, debug=True):
         super()._eval(env)
 
-        return f"Call {self.name}"
+        locals = self.name._eval(env, eval=True)
+
+        # Deep copy of initial environment to maintain immutability 
+        # for future calls
+        locals = copy.deepcopy(locals)
+
+        # Define passed parameters
+        # Insert element in array to match dictionary
+        self.parameters.insert(0, None)
+
+        for k, v in zip(locals, self.parameters):
+            if k == '__body__': continue
+            locals[k] = [v, locals[k][1]]
+
+        # Evaluate copied environment
+        return locals['__body__']._eval(locals, debug=True)

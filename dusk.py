@@ -55,7 +55,7 @@ class Dusk:
         self.lexer.tokenize(self.stream)
         self.tokens = self.lexer.add_EOF_token()
 
-        if debug: print(self.tokens)
+        # if debug: print(self.tokens)
 
         # Parser
         self.parser = Parser(self.tokens)

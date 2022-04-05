@@ -41,7 +41,7 @@ def p_statement(p):
     #           | let_statement
     #           | ... TODO
 
-    print("start w/", p.current_token)
+    # print("start w/", p.current_token)
 
     if p.current_token == 'LET':
         return p_let_statement(p)

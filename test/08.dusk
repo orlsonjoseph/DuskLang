@@ -1,11 +1,7 @@
 # Functions
 
-define greet {}
+define greet (name: str) {
+    return "Hello, " + name; 
+}
 
-# define greet { return "Hi"; }
-
-# define greet (message: str) { return message; }
-
-# greet("Hello");
-
-let age: int = 18;
+greet("Orlson");
