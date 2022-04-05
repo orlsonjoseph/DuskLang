@@ -90,7 +90,12 @@ class Lexer:
             punctuation = any(
                     re.fullmatch(pattern, character or EMPTY_STRING)
                         for pattern in library.punctuation)
-
+                        
+            # If punctuation was a period, makes sure that
+            # next character is not a digit
+            if punctuation and re.fullmatch(library.t_PERIOD, character):
+                if not stream.peek().isalpha(): punctuation = False
+                
             # If punctuation; handles composed operators
             if punctuation:
                 split = any(
@@ -99,7 +104,7 @@ class Lexer:
                 # 2nd half of composed operators is equals
                 if split and re.fullmatch(library.t_EQUALS[0], stream.peek()):
                     character += stream.next()
-                    
+
             # If whitespace
             if (re.fullmatch(library.whitespace, character) or punctuation) and not in_quote:
                 token, lexeme = self._process(lexeme, stream)

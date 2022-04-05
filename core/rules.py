@@ -6,9 +6,7 @@
 
 # TODO linepos to every Node
 
-from logging import root
 from core.nodes import *
-from core.nodes import binop
 
 from core.resources.constants import EOF
 from core.resources.exceptions import ParsingError
@@ -23,27 +21,27 @@ def p_program(p):
 
     if p.next_token == EOF:
         return Program(body = statement_list)
+
     return p_error(p, EOF)
 
-def p_statement_list(p):
+def p_statement_list(p, endmarker=None):
     # statement_list: statement statement_list EOF
     #               | statement EOF
 
     statement = [p_statement(p)]
 
-    if p.next_token == EOF:
+    if p.next_token == EOF or p.current_token == endmarker:
         return statement
 
-    if p.current_token == 'RBRACE':
-        p.update()
-
-    statement.extend(p_statement_list(p))
+    statement.extend(p_statement_list(p))   
     return statement
 
 def p_statement(p):
     # statement : expression_statement
     #           | let_statement
     #           | ... TODO
+
+    print("start w/", p.current_token)
 
     if p.current_token == 'LET':
         return p_let_statement(p)
@@ -57,20 +55,23 @@ def p_statement(p):
     if p.current_token == 'STRUCT':
         return p_struct_statement(p)
 
+    if p.current_token == 'DEFINE':
+        return p_define_statement(p)
+
+    if p.current_token == 'RETURN':
+        return p_return_statement(p)
+
     return p_expression(p)
 
 def p_let_statement(p):
     # let_statement : LET expression SEMI
-
     p.update()
-
     expr = p_assignment_expression(p); p.update()
     return expr
 
 def p_if_statement(p):
     # if_statement : IF expression block
     #              : IF expression block ELSE block
-
     p.update()
     
     condition = p_conditional_expression(p)
@@ -106,9 +107,35 @@ def p_struct_statement(p):
     if p.current_token == 'LBRACE':
         p.update()
 
-        variables = p_declarator_list(p)
+        variables = p_declarator_list(p); p.update()
         return Struct(name, variables, p.current_token)
     return p_error(p, 'RBRACE')
+
+def p_define_statement(p):
+    # define_statement : DEFINE literal block
+    #                  : DEFINE literal LPAREN declaration_list RPAREN block
+    p.update()
+
+    token, name = p.current_token, p_literal(p)
+    parameters = None
+
+    if p.current_token == 'LPAREN':
+        p.update(); parameters = p_declarator_list(p)
+
+        if p.current_token != 'RPAREN':
+            return p_error(p, 'RPAREN')
+
+        p.update()
+
+    block = p_compound_statement(p)
+    return Function(name, parameters, block, token)
+    
+def p_return_statement(p):
+    # return_statement : RETURN expression
+    p.update()
+
+    expr = p_expression(p)
+    return Return(expr, p.current_token)
 
 def p_expression(p):
     # expression : arithmetic_expression
@@ -128,14 +155,14 @@ def p_compound_statement(p):
 
     # Empty braces
     if p.current_token == 'RBRACE':
-        block = None
-    else:
-        block = p_statement_list(p)
-        if p.current_token != 'RBRACE':
-            return p_error(p, 'RBRACE')
+        p.update(); return Block(body = None)
 
-    p.update()
-    return Block(body = block)
+    block = p_statement_list(p, endmarker='RBRACE')
+
+    if p.current_token == 'RBRACE':
+        p.update(); return Block(body = block)
+
+    return p_error(p, 'RBRACE')
 
 # Helper function
 def binary_operator(p, peer, child, operator):
@@ -197,10 +224,11 @@ def p_postfix_expression(p):
         return Indexing(label, p_group_expression(p, 'RBRACKET'), p.next_token)
 
     if p.next_token == 'LPAREN':
-        pass # argument_expr_list for function call
+        name = p_primary_expression(p); p.update()
+        args = p_argument_expr_list(p); p.update()
+        return Call(name, args, p.current_token)
 
     # Composed name (person.name)
-    # TODO composed name followed by indexing
     if p.next_token == 'PERIOD':
         prefix = p_literal(p)
 

@@ -9,7 +9,7 @@ from core.resources.constants import EMPTY_STRING
 
 class Undefined(Expression):
     def __init__(self) -> None:
-        super().__init__()
+        pass
 
     def __str__(self) -> str:
         return EMPTY_STRING

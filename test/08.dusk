@@ -1,7 +1,11 @@
 # Functions
 
-define add(x: int, y: int) = {
-    return x + y;
-}
+define greet {}
 
-# Methods receive the structure as 1st argument
+# define greet { return "Hi"; }
+
+# define greet (message: str) { return message; }
+
+# greet("Hello");
+
+let age: int = 18;
