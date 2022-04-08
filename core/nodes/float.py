@@ -16,6 +16,4 @@ class Float(Expression):
         return f"Float <{self.value}>"
 
     def _eval(self, env, **kwargs):
-        super()._eval(env)
-
         return float(self.value)

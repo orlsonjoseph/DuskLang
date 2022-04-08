@@ -1,0 +1,18 @@
+program             := statement_list EOF
+statement_list      := statement statement_list | statement
+statement           := define_stmt | if_stmt | let_stmt | return_stmt | while_stmt | struct_decl | expr 
+define_stmt         := DEFINE literal compound_stmt | DEFINE literal declaration_list compound_stmt
+if_stmt             := IF conditional_expr compound_stmt | IF expr compound_stmt else_stmt
+else_stmt           := ELSE compound_stmt
+let_stmt            := LET assignment_expr SEMI
+return_stmt         := RETURN expr SEMI
+while_stmt          := WHILE conditional_expr compound_stmt
+struct_decl         := STRUCT literal declaration_list
+compound_stmt       := LBRACE statement_list RBRACE
+
+expr                := assignment_expr
+assignment_expr     := conditional_expr EQUALS assignment_expr | conditional_expr
+conditional_expr    := inclusive_or_expr
+inclusive_or_expr   := and_expr OR inclusive_or_expr | and_expr
+and_expr            := equality_expr ( EQ | NE ) and_expr | equality_expr
+declaration_list    := LPAREN declaration RPAREN | LPAREN declaration COMMA declaration_list RPAREN

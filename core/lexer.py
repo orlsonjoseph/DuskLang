@@ -8,29 +8,9 @@ import re
 
 from core.tokens import Tokens as library
 
+from core.resources.token import Token
 from core.resources.exceptions import SyntaxError
 from core.resources.constants import EMPTY_STRING, EOF
-    
-class Token:
-    def __init__(self, type, value, pos) -> None:
-        self.type = type.split('_')[-1]
-        self.value = value
-
-        self.linepos, self.charpos = pos
-
-    def __str__(self) -> str:
-        return f"({self.type}, {self.value})"
-
-    def __repr__(self) -> str:
-        return self.__str__()
-    
-    # Overloading comparison
-    def __eq__(self, __o: object) -> bool:
-        if isinstance(__o, str):
-            return self.type == __o
-
-    def __ne__(self, __o: object) -> bool:
-        return not self.__eq__(__o)
 
 class Lexer:
     def __init__(self) -> None:
@@ -39,6 +19,12 @@ class Lexer:
         # Retrieve rules and labels from tokens
         self.rules = [(k, v) 
             for k, v in vars(library).items() if k.startswith('t_')]
+
+    def _recognize(self, lexeme, stream):
+        token, lexeme = self._process(lexeme, stream)
+        if token: self.tokens.append(token)
+
+        return lexeme
 
     def _process(self, lexeme, stream):
         if lexeme:
@@ -65,7 +51,7 @@ class Lexer:
         lexeme, predicate = EMPTY_STRING, None
         in_quote = False
 
-        # Add newline to input to process last characters
+        # Add whitespace to input to process last characters
         stream.input += " "
 
         # Ideally read until eof
@@ -87,32 +73,27 @@ class Lexer:
                 in_quote = not in_quote
 
             # Is this character a punctuation / delimiter
-            punctuation = any(
-                    re.fullmatch(pattern, character or EMPTY_STRING)
-                        for pattern in library.punctuation)
-                        
+            punctuation = not character.isalnum() and not character.isspace()
+
             # If punctuation was a period, makes sure that
             # next character is not a digit
             if punctuation and re.fullmatch(library.t_PERIOD, character):
                 if not stream.peek().isalpha(): punctuation = False
                 
-            # If punctuation; handles composed operators
+            # If punctuation; handle two parts binary operators
             if punctuation:
-                split = any(
-                    re.fullmatch(pattern, character) for pattern in library.composed_operators)
+                isoperator = any(
+                    re.fullmatch(pattern, character) for pattern in library.operators)
                 
-                # 2nd half of composed operators is equals
-                if split and re.fullmatch(library.t_EQUALS[0], stream.peek()):
+                if isoperator and re.fullmatch(library.t_EQUALS[0], stream.peek()):
                     character += stream.next()
 
             # If whitespace
-            if (re.fullmatch(library.whitespace, character) or punctuation) and not in_quote:
-                token, lexeme = self._process(lexeme, stream)
-                if token: self.tokens.append(token)
+            if (character.isspace() or punctuation) and not in_quote:
+                lexeme = self._recognize(lexeme, stream)
                 
                 if punctuation and character:
-                    token, _ = self._process(character, stream)
-                    self.tokens.append(token)
+                    self._recognize(character, stream)
 
                 continue
 
@@ -121,7 +102,7 @@ class Lexer:
                 
         return self.tokens
 
-    def add_EOF_token(self):
+    def eof_token(self):
         token = Token(EOF, None, (0, 0))
 
         self.tokens.append(token)

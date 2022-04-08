@@ -16,6 +16,4 @@ class String(Expression):
         return f"String <{self.value}>"
 
     def _eval(self, env, **kwargs):
-        super()._eval(env)
-
         return str(self.value)

@@ -15,6 +15,4 @@ class Undefined(Expression):
         return EMPTY_STRING
 
     def _eval(self, env, **kwargs):
-        super()._eval(env)
-
         return None

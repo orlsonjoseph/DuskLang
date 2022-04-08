@@ -35,8 +35,6 @@ class Indexing(Statement):
         return f"Indexing [{self.name}, {self.index}]"
 
     def _eval(self, env, **kwargs):
-        super()._eval(env)
-
         label, index = self.name._eval(env, eval = False), self.index._eval(env)
 
         # Type checking

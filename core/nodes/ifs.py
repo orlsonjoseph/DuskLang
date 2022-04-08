@@ -16,9 +16,7 @@ class If(Statement):
     def __str__(self) -> str:
         return f"If <{self.condition}> [{self.block}] ELSE {self.else_block}"
 
-    def _eval(self, env, debug = True):
-        super()._eval(env)
-        
+    def _eval(self, env, debug = True):        
         to_execute = self.block if self.condition._eval(env) else self.else_block
 
         if to_execute is not None: to_execute._eval(env, debug)

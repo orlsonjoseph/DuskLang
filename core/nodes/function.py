@@ -22,9 +22,7 @@ class Function(Statement):
     def __str__(self) -> str:
         return f"Function {self.name} > [{self.parameters}] [{self.block}]"
 
-    def _eval(self, env, debug=True):
-        super()._eval(env)
-        
+    def _eval(self, env, debug=True):        
         name = self.name._eval(env, eval=False)
 
         locals = {'__body__': self.block}

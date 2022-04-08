@@ -17,9 +17,7 @@ class Literal(Expression):
     def __str__(self) -> str:
         return f"Literal '{self.name}'"
 
-    def _eval(self, env, **kwargs):
-        super()._eval(env)
-        
+    def _eval(self, env, **kwargs):        
         if "eval" in kwargs and not kwargs["eval"]: return self.name
         
         # Evaluating a literal always seeks out the value

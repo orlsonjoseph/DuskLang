@@ -16,6 +16,4 @@ class Boolean(Expression):
         return f"Boolean <{self.value}>"
 
     def _eval(self, env, **kwargs):
-        super()._eval(env)
-
         return bool(self.value)

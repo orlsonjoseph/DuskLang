@@ -6,10 +6,7 @@
 
 class Node:
     def __repr__(self) -> str:
-        return self.__str__()        
-
-    def _eval(self, env):
-        pass
+        return self.__str__()
 
 class Statement(Node):
     pass

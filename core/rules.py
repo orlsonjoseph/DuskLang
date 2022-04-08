@@ -4,8 +4,6 @@
 # Abstract Syntactic Tree
 # ----------------------------------------------------------------------
 
-# TODO linepos to every Node
-
 from core.nodes import *
 
 from core.resources.constants import EOF
@@ -13,10 +11,9 @@ from core.resources.exceptions import ParsingError
 
 def p_error(p, expected):
     raise ParsingError(
-        f"Expected token {expected} got {p.current_token.value}")
+        f"Expected token {expected}; got {p.current_token.value}")
 
 def p_program(p):
-    # program: (statement_list EOF)
     statement_list = p_statement_list(p)
 
     if p.next_token == EOF:
@@ -25,9 +22,6 @@ def p_program(p):
     return p_error(p, EOF)
 
 def p_statement_list(p, endmarker=None):
-    # statement_list: statement statement_list EOF
-    #               | statement EOF
-
     statement = [p_statement(p)]
 
     if p.next_token == EOF or p.current_token == endmarker:
@@ -37,133 +31,119 @@ def p_statement_list(p, endmarker=None):
     return statement
 
 def p_statement(p):
-    # statement : expression_statement
-    #           | let_statement
-    #           | ... TODO
-
-    # print("start w/", p.current_token)
-
-    if p.current_token == 'LET':
-        return p_let_statement(p)
+    if p.current_token == 'DEFINE':
+        return p_define_stmt(p)
 
     if p.current_token == 'IF':
-        return p_if_statement(p)
-  
-    if p.current_token == 'WHILE':
-        return p_while_statement(p)
-
-    if p.current_token == 'STRUCT':
-        return p_struct_statement(p)
-
-    if p.current_token == 'DEFINE':
-        return p_define_statement(p)
+        return p_if_stmt(p)
+    
+    if p.current_token == 'LET':
+        return p_let_stmt(p)
 
     if p.current_token == 'RETURN':
-        return p_return_statement(p)
+        return p_return_stmt(p)
 
-    return p_expression(p)
+    if p.current_token == 'WHILE':
+        return p_while_stmt(p)
 
-def p_let_statement(p):
-    # let_statement : LET expression SEMI
-    p.update()
-    expr = p_assignment_expression(p); p.update()
-    return expr
+    if p.current_token == 'STRUCT':
+        return p_struct_decl(p)
 
-def p_if_statement(p):
-    # if_statement : IF expression block
-    #              : IF expression block ELSE block
-    p.update()
-    
-    condition = p_conditional_expression(p)
+    return p_expr(p)
 
-    if p.current_token == 'LBRACE':
-        block = p_compound_statement(p)
-
-        if p.current_token == 'ELSE':
-            p.update()
-
-            else_block = p_compound_statement(p)
-            return If(condition, block, else_block)
-        return If(condition, block)
-    return p_error(p, 'LBRACE')
-
-def p_while_statement(p):
-    # while_statement : WHILE expression block
-    p.update()
-
-    condition = p_conditional_expression(p)
-
-    if p.current_token == 'LBRACE':
-        block = p_compound_statement(p)
-
-        return While(condition, block)
-    return p_error(p, 'LBRACE')
-
-def p_struct_statement(p):
-    # struct_statement : STRUCT literal LBRACE declarator_list RBRACE
-    p.update()
-
-    name = p_literal(p)
-    if p.current_token == 'LBRACE':
-        p.update()
-
-        variables = p_declarator_list(p); p.update()
-        return Struct(name, variables, p.current_token)
-    return p_error(p, 'RBRACE')
-
-def p_define_statement(p):
-    # define_statement : DEFINE literal block
-    #                  : DEFINE literal LPAREN declaration_list RPAREN block
+def p_define_stmt(p):
     p.update()
 
     token, name = p.current_token, p_literal(p)
     parameters = None
 
     if p.current_token == 'LPAREN':
-        p.update(); parameters = p_declarator_list(p)
+        p.update();
+        
+        parameters = p_declaration_list(p)
 
-        if p.current_token != 'RPAREN':
-            return p_error(p, 'RPAREN')
-
+        if p.current_token != 'RPAREN': return p_error(p, 'RPAREN')
         p.update()
 
-    block = p_compound_statement(p)
-    return Function(name, parameters, block, token)
+    return Function(name, parameters, p_compound_stmt(p), token)
+
+def p_if_stmt(p):
+    p.update()
     
-def p_return_statement(p):
-    # return_statement : RETURN expression
+    condition = p_conditional_expr(p)
+
+    if p.current_token == 'LBRACE':
+        block, alternate = p_compound_stmt(p), None
+
+        if p.current_token == 'ELSE':
+            alternate = else_stmt(p)
+
+        return If(condition, block, alternate)
+    return p_error(p, 'LBRACE')
+
+def else_stmt(p):
     p.update()
 
-    expr = p_expression(p)
-    return Return(expr, p.current_token)
+    return p_compound_stmt(p)
 
-def p_expression(p):
-    # expression : arithmetic_expression
-    #                      | group_expression
-    #                      | ... TODO
+def p_let_stmt(p):
+    p.update()
     
+    expr = p_assignment_expr(p); p.update()
+    return expr 
+
+def p_return_stmt(p):
+    p.update()
+
+    token, expr = p.current_token, p_expr(p); p.update()
+    return Return(expr, token)
+
+def p_while_stmt(p):
+    p.update()
+
+    condition = p_conditional_expr(p)
+
     if p.current_token == 'LBRACE':
-        return p_compound_statement(p)
+        block = p_compound_stmt(p)
 
-    expression = p_conditional_expression(p)
-    if p.current_token == 'SEMI': p.update();
-    return expression
+        return While(condition, block)
+    return p_error(p, 'LBRACE')
 
-def p_compound_statement(p):
-    # compound_statement : LBRACE expression_statement RBRACE
+def p_struct_decl(p):
+    p.update()
+
+    token = p.current_token
+    name, variables = p_literal(p), p_declaration_list(p)
+
+    p.update(); return Struct(name, variables, token)
+
+def p_compound_stmt(p):
+    if not p.current_token == 'LBRACE':
+        return p_error(p, 'LBRACE')
+
     p.update()
 
     # Empty braces
     if p.current_token == 'RBRACE':
-        p.update(); return Block(body = None)
+        p.update()
+        return Block(body = None)
 
     block = p_statement_list(p, endmarker='RBRACE')
 
     if p.current_token == 'RBRACE':
-        p.update(); return Block(body = block)
+        p.update();
+        return Block(body = block)
 
     return p_error(p, 'RBRACE')
 
+def p_expr(p):
+    expr = p_assignment_expr(p)
+
+    if p.current_token == 'SEMI':
+        p.update()
+
+    return expr
+    
 # Helper function
 def binary_operator(p, peer, child, operator):
     left = child(p)
@@ -177,17 +157,17 @@ def binary_operator(p, peer, child, operator):
 
     return left
 
-def p_conditional_expression(p):
-    return p_assignment_expression(p)
+def p_assignment_expr(p):
+    return binary_operator(p, p_assignment_expr, p_conditional_expr, ['EQUALS'])
 
-def p_assignment_expression(p):
-    return binary_operator(p, p_assignment_expression, p_inclusive_or_expression, ['EQUALS'])
+def p_conditional_expr(p):
+    return p_inclusive_or_expr(p)
 
-def p_inclusive_or_expression(p):
-    return binary_operator(p, p_inclusive_or_expression, p_and_expression, ['OR'])
+def p_inclusive_or_expr(p):
+    return binary_operator(p, p_inclusive_or_expr, p_and_expr, ['OR'])
 
-def p_and_expression(p):
-    return binary_operator(p, p_and_expression, p_equality_expression, ['AND'])
+def p_and_expr(p):
+    return binary_operator(p, p_and_expr, p_equality_expression, ['AND'])
     
 def p_equality_expression(p):
     return binary_operator(p, p_equality_expression, p_relational_expression, ['EQ', 'NE'])
@@ -244,7 +224,7 @@ def p_postfix_expression(p):
 
 def p_primary_expression(p):
     if p.next_token == 'COLON':
-        return p_declarator(p)
+        return p_declaration(p)
     
     if p.current_token == 'ID':
         return p_literal(p) 
@@ -258,13 +238,26 @@ def p_group_expression(p, endmarker):
     # group_expression : LPAREN expression RPAREN
     p.update()
 
-    group = p_expression(p)
+    group = p_expr(p)
     if p.current_token == endmarker:
         p.update(); return group
     
     return p_error(p, endmarker)
-    
-def p_declarator(p):
+
+def p_declaration_list(p):
+    if p.current_token == 'LPAREN':
+        expr = [p_declaration(p)]
+
+        while p.current_token in ['COMMA']:
+            p.update()
+
+            next = p_declaration(p)
+            expr = expr + [next]
+
+        return expr
+    return p_error(p, 'LPAREN')
+
+def p_declaration(p):
     # declarator : ID COLON type_specifier
     name = p_literal(p)
     p.update()
@@ -272,19 +265,7 @@ def p_declarator(p):
     type = p_type_identifier(p)
     return Let(name, type, p.current_token)
 
-def p_declarator_list(p):
-    # declarator_list : declarator
-    #                 : declarator_list COMMA declarator
-    
-    expr = [p_declarator(p)]
 
-    while p.current_token in ['COMMA']:
-        p.update()
-
-        next = p_declarator(p)
-        expr = expr + [next]
-
-    return expr
 
 def p_type_identifier(p):
     # type_identifier : FLOAT
@@ -309,12 +290,12 @@ def p_argument_expr_list(p):
     # argument_expr_list : assignment_expression
     #                    | argument_expr_list COMMA assignment_expression
 
-    expr = [p_assignment_expression(p)]
+    expr = [p_assignment_expr(p)]
 
     while p.current_token in ['COMMA']:
         p.update()
 
-        next = p_assignment_expression(p)
+        next = p_assignment_expr(p)
         expr = expr + [next]
 
     return expr

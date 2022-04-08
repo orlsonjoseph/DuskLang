@@ -29,11 +29,13 @@ class Tokens:
 
     # Conditional Operators
     t_LT        = r'<'
-    t_LE        = r'<='
     t_GT        = r'>'
-    t_GE        = r'>='
     t_NT        = r'!'
+
+    t_LE        = r'<='
+    t_GE        = r'>='
     t_NE        = r'!='
+
     t_EQ        = r'=='
 
     # Delimiters ( ) [ ] { } , . =
@@ -62,11 +64,4 @@ class Tokens:
     quote       = r'\"'
 
     # Operators
-    composed_operators   = [
-        t_EQUALS, t_LT, t_GT, t_NT]
-
-    # Punctuation
-    punctuation = [
-        t_SEMI, t_COLON, t_RBRACKET, t_LBRACKET, t_RPAREN, t_LPAREN,
-        t_RBRACE, t_LBRACE, t_COMMA, t_PERIOD, t_PLUS, t_MINUS
-        ] + composed_operators
+    operators   = [t_EQUALS, t_LT, t_GT, t_NT]

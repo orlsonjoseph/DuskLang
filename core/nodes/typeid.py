@@ -5,7 +5,7 @@
 # ----------------------------------------------------------------------
 
 from core.nodes.__base__ import Expression
-from core.resources.constants import PRIMITIVES
+from core.resources.constants import BUILTIN_TYPES, PRIMITIVES
 
 class TypeId(Expression):
     def __init__(self, type) -> None:
@@ -17,9 +17,7 @@ class TypeId(Expression):
         return f"Type <{self.type}>"
 
     def _eval(self, env, **kwargs):
-        super()._eval(env)
-
         return self.type
 
     def is_primitive(self):
-        return self.type in PRIMITIVES
+        return self.type in BUILTIN_TYPES

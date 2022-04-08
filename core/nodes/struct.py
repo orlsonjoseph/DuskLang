@@ -17,9 +17,7 @@ class Struct(Statement):
     def __str__(self) -> str:
         return f"Struct <{self.name}>"
 
-    def _eval(self, env, debug = True):
-        super()._eval(env)
-        
+    def _eval(self, env, debug = True):        
         name = self.name._eval(env, eval = False)
         env[name] = [self.declarations, TypeId('struct')]
         return f"Struct {name}"

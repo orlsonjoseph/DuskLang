@@ -20,8 +20,6 @@ class Assign(Statement):
         return f"Assign [{self.destination}] {self.expression}"
 
     def _eval(self, env, **kwargs):
-        super()._eval(env)
-        
         # If assign on Indexing; then override function
         # INFO Workaround python passing by object call rather than ref
         if type(self.destination).__name__ == 'Indexing':

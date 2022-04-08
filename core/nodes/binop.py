@@ -20,8 +20,6 @@ class BinOp(Expression):
         return f"Binary Operation {self.operator.value} [{self.left}] [{self.right}]"
 
     def _eval(self, env, **kwargs):
-        super()._eval(env)
-
         x, y = self.left._eval(env, eval = True), self.right._eval(env, eval = True)
 
          # is not None

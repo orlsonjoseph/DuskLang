@@ -12,6 +12,6 @@ EMPTY_STRING = ""
 EOF = "End-of-file"
 
 #
-PRIMITIVES = [
-    'BOOL', 'FLOAT', 'INT', 'LIST', 'STR',
-]
+PRIMITIVES = ['BOOL', 'FLOAT', 'INT', 'STR']
+
+BUILTIN_TYPES = PRIMITIVES + ['LIST']

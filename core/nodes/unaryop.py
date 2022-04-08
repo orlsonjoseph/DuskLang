@@ -15,8 +15,6 @@ class UnaryOp(Expression):
     def __str__(self) -> str:
         return f"Unary Operation {self.operator.value} [{self.right}]"
 
-    def _eval(self, env, **kwargs):
-        super()._eval(env)
-        
+    def _eval(self, env, **kwargs):        
         x = self.right._eval(env)
         return eval(f"{self.operator.value} x")

@@ -17,6 +17,7 @@ from core.nodes.list import Indexing, List
 from core.nodes.number import Number
 from core.nodes.prefix import Prefix
 from core.nodes.program import Program
+from core.nodes.string import String
 from core.nodes.struct import Struct
 from core.nodes.typeid import TypeId
 from core.nodes.unaryop import UnaryOp
@@ -24,4 +25,3 @@ from core.nodes.undefined import Undefined
 from core.nodes.whiles import While
 
 # Explicit imports to resolve conflicts
-from core.nodes.string import String

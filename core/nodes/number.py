@@ -16,6 +16,4 @@ class Number(Expression):
         return f"Number <{self.value}>"
 
     def _eval(self, env, **kwargs):
-        super()._eval(env)
-
         return int(self.value)

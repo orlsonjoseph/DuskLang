@@ -16,8 +16,6 @@ class Program(Statement):
         return f"Program - {self.body}"
     
     def _eval(self, env, debug = False):
-        super()._eval(env)
-
         for i, statement in enumerate(self.body):
             output = statement._eval(env)
 

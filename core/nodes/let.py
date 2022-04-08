@@ -22,8 +22,6 @@ class Let(Statement):
         return f"Let [{self.name}] {self.type}]"
 
     def _eval(self, env, **kwargs):
-        super()._eval(env)
-
         label = self.name._eval(env, eval = False)
 
         if label in env:

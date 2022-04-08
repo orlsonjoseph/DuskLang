@@ -6,6 +6,8 @@
 
 from core.rules import p_program
 
+S = p_program
+
 class Parser:
     def __init__(self, tokens) -> None:
         self.tokens = iter(tokens)
@@ -27,4 +29,4 @@ class Parser:
         return True
 
     def parse(self):
-        return p_program(self)
+        return S(self)

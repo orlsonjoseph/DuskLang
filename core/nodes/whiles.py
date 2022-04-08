@@ -15,8 +15,6 @@ class While(Statement):
     def __str__(self) -> str:
         return f"While <{self.condition}> [{self.block}]"
 
-    def _eval(self, env, debug = True):
-        super()._eval(env)
-        
+    def _eval(self, env, debug = True):        
         while self.condition._eval(env):
             self.block._eval(env, debug)

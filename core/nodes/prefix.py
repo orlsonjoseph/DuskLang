@@ -20,8 +20,6 @@ class Prefix(Expression):
         return f"[Prefix {self.prefix} {self.endpoint}]"
 
     def _eval(self, env, **kwargs):
-        super()._eval(env)
-
         if "eval" in kwargs and not kwargs["eval"]:
             # Not able to go further due to reference limitations
             return self.prefix._eval(env, eval=False)

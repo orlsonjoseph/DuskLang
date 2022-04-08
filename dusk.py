@@ -48,14 +48,14 @@ class Dusk:
         self.source = self._read()
 
         # 
-        self.lexer = Lexer()
         self.stream = Stream(self.source)
 
         # Split input into token list
+        self.lexer = Lexer()
         self.lexer.tokenize(self.stream)
-        self.tokens = self.lexer.add_EOF_token()
+        self.tokens = self.lexer.eof_token()
 
-        # if debug: print(self.tokens)
+        if debug: print(self.tokens)
 
         # Parser
         self.parser = Parser(self.tokens)

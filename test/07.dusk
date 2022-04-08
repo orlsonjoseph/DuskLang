@@ -1,10 +1,10 @@
 # Structures
 
-struct Book {
+struct Book (
     title: str,
     isbn: int,
     pages: list
-}
+)
 
 let my_book: Book;
 let credits: str = " by Toni Morrisson";
