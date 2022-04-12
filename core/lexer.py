@@ -10,7 +10,7 @@ from core.tokens import Tokens as library
 
 from core.resources.token import Token
 from core.resources.exceptions import SyntaxError
-from core.resources.constants import EMPTY_STRING, EOF
+from core.resources.constants import EMPTY_STRING, EOF, UNDERSCORE
 
 class Lexer:
     def __init__(self) -> None:
@@ -71,9 +71,12 @@ class Lexer:
             
             if re.fullmatch(library.quote, character):
                 in_quote = not in_quote
+                if not in_quote: # but were
+                    lexeme += character
+                    character = stream.next()
 
             # Is this character a punctuation / delimiter
-            punctuation = not character.isalnum() and not character.isspace()
+            punctuation = not character.isalnum() and not character.isspace() and character != UNDERSCORE
 
             # If punctuation was a period, makes sure that
             # next character is not a digit

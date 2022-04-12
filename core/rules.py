@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------
-# fxs.py
+# rules.py
 #
-# Abstract Syntactic Tree
+# Parsing Rules
 # ----------------------------------------------------------------------
 
 from core.nodes import *
@@ -264,8 +264,6 @@ def p_declaration(p):
 
     type = p_type_identifier(p)
     return Let(name, type, p.current_token)
-
-
 
 def p_type_identifier(p):
     # type_identifier : FLOAT

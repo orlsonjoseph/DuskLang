@@ -44,8 +44,6 @@ class Return(Expression):
         return f"Return [{self.expression}]"
 
     def _eval(self, env, **kwargs):
-        super()._eval(env)
-
         return self.expression._eval(env)
 
 # Function Call
@@ -60,10 +58,14 @@ class Call(Expression):
         return f"Call {self.name} {self.parameters}"
 
     def _eval(self, env, debug=True):
-        super()._eval(env)
+        name = self.name._eval(env, eval=False)
+        _, d_type = env[name]
+
+        if d_type.type == 'BUILTIN':
+            reference = self.name._eval(env, eval=True)
+            return reference(*[item._eval(env) for item in self.parameters])
 
         locals = self.name._eval(env, eval=True)
-
         # Deep copy of initial environment to maintain immutability 
         # for future calls
         locals = copy.deepcopy(locals)

@@ -3,3 +3,6 @@ let count: int = 1;
 while count < 3 {
     count = count + 1;
 }
+
+let colors:list = ["red", "blue", "orange"];
+puts(sizeof(colors));

@@ -12,6 +12,7 @@ from argparse import ArgumentParser, ArgumentError
 
 from core.lexer import Lexer
 from core.parser import Parser
+from core.interpreter import Interpreter
 
 from core.resources.exceptions import UnsupportedException
 from core.resources.constants import EXTENSION
@@ -64,7 +65,9 @@ class Dusk:
         if debug: print(self.ast)
         
         # Evaluator / Interpreter
-        self.ast._eval(self.environment, debug=debug)
+        self.interpreter = Interpreter(
+                self.ast, self.environment, debug=True)
+        self.interpreter.evaluate()
 
         if debug: print(self.environment)
 

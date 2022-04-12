@@ -19,8 +19,6 @@ class List(Expression):
         return f"List <{self.value}>"
 
     def _eval(self, env, **kwargs):
-        super()._eval(env)
-
         return [v._eval(env, eval = True) for v in self.value]
 
 class Indexing(Statement):

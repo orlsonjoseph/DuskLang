@@ -1,0 +1,3 @@
+let colors:list = ["red", "blue", "orange"];
+
+let size: int = sizeof(colors);
