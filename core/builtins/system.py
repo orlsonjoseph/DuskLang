@@ -26,4 +26,11 @@ SYSTEM = {
     'oct'       : [oct,     builtin_type],
     'puts'      : [print,   builtin_type],
     'sort'      : [sorted,  builtin_type],
+
+    # List functions
+    # append
+    # extend
+    # index
+    # insert
+    # pop
 }

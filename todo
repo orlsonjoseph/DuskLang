@@ -1,0 +1,2 @@
+change integer to number --> token type
+makes sure that lexer raises error if string is not ended

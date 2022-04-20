@@ -56,7 +56,7 @@ class Dusk:
         self.lexer.tokenize(self.stream)
         self.tokens = self.lexer.eof_token()
 
-        if debug: print(self.tokens)
+        # if debug: print(self.tokens)
 
         # Parser
         self.parser = Parser(self.tokens)
@@ -69,7 +69,7 @@ class Dusk:
                 self.ast, self.environment, debug=True)
         self.interpreter.evaluate()
 
-        if debug: print(self.environment)
+        # if debug: print(self.environment)
 
 if __name__ == "__main__":
     

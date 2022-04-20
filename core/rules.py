@@ -6,7 +6,7 @@
 
 from core.nodes import *
 
-from core.resources.constants import EOF
+from core.resources.constants import BUILTIN_TYPES, EOF
 from core.resources.exceptions import ParsingError
 
 def p_error(p, expected):
@@ -33,6 +33,9 @@ def p_statement_list(p, endmarker=None):
 def p_statement(p):
     if p.current_token == 'DEFINE':
         return p_define_stmt(p)
+
+    if p.current_token == 'EDGE':
+        return p_edge_stmt(p)
 
     if p.current_token == 'IF':
         return p_if_stmt(p)
@@ -66,6 +69,13 @@ def p_define_stmt(p):
         p.update()
 
     return Function(name, parameters, p_compound_stmt(p), token)
+
+def p_edge_stmt(p):
+    p.update()
+
+    token, graph = p.current_token, p_literal(p)
+    start, end = p_constant(p), p_constant(p)
+    return Edge(graph, start, end, token)
 
 def p_if_stmt(p):
     p.update()
@@ -113,8 +123,8 @@ def p_struct_decl(p):
     p.update()
 
     token = p.current_token
-    name, variables = p_literal(p), p_declaration_list(p)
-
+    name = p_literal(p)
+    variables =  p_declaration_list(p)
     p.update(); return Struct(name, variables, token)
 
 def p_compound_stmt(p):
@@ -188,9 +198,15 @@ def p_unary_expression(p):
 
         return UnaryOp(operator, p_unary_expression(p))
 
+    if p.current_token == 'NODE':
+        token = p.current_token; p.update()
+        return Graph(p_unary_expression(p), token)
+
     return p_postfix_expression(p)
 
 def p_postfix_expression(p):
+    token = p.current_token
+
     # Argument Expression List
     if p.current_token == 'LBRACKET':
         p.update()
@@ -201,7 +217,7 @@ def p_postfix_expression(p):
     # Indexing
     if p.next_token == 'LBRACKET':
         label = p_primary_expression(p)
-        return Indexing(label, p_group_expression(p, 'RBRACKET'), p.next_token)
+        return Indexing(label, p_group_expression(p, 'RBRACKET'), token)
 
     if p.next_token == 'LPAREN':
         name = p_primary_expression(p); p.update()
@@ -246,8 +262,9 @@ def p_group_expression(p, endmarker):
 
 def p_declaration_list(p):
     if p.current_token == 'LPAREN':
-        expr = [p_declaration(p)]
+        p.update()
 
+        expr = [p_declaration(p)]
         while p.current_token in ['COMMA']:
             p.update()
 
@@ -271,7 +288,7 @@ def p_type_identifier(p):
     #                 : LIST
     #                 : STR
     
-    if p.current_token in ['FLOAT', 'INT', 'LIST', 'STR', 'BOOL']:
+    if p.current_token in BUILTIN_TYPES:
         type = p.current_token.type
         p.update()
 

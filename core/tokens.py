@@ -7,8 +7,8 @@
 class Tokens:
 
     # Reserved words
-    reserved = ['and', 'bool', 'define', 'else', 'false', 'float', 'if',
-                'int', 'let', 'list', 'not', 'or', 'return', 'str',
+    reserved = ['and', 'bool', 'define', 'edge', 'else', 'false', 'float', 'graph', 'if',
+                'int', 'let', 'list', 'node', 'not', 'or', 'return', 'str',
                 'struct', 'true', 'while']
 
     # Literals (identifier)

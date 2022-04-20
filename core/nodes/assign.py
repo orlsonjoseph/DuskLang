@@ -35,7 +35,7 @@ class Assign(Statement):
 
         value = self.expression._eval(env)
 
-        if not d_type.type in ['LIST', 'STRUCT']:
+        if not d_type.type in ['GRAPH', 'LIST', 'STRUCT']:
             if not Typing.compare(env[name], value):
                 raise TypeError(
                     "Unable to assign type TODO to {name}. (Line {self.token.linepos})")

@@ -10,6 +10,7 @@ from core.nodes.block import Block
 from core.nodes.boolean import Boolean
 from core.nodes.float import Float
 from core.nodes.function import Call, Function, Return
+from core.nodes.graph import Graph, Edge
 from core.nodes.ifs import If
 from core.nodes.let import Let
 from core.nodes.literal import Literal

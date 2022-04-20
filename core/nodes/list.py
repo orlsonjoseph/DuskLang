@@ -6,7 +6,7 @@
 
 from core.nodes.__base__ import Expression, Statement
 
-from core.resources.exceptions import NameError, TypeError
+from core.resources.exceptions import TypeError
 from core.resources.typing import Typing
 
 class List(Expression):
@@ -35,15 +35,15 @@ class Indexing(Statement):
     def _eval(self, env, **kwargs):
         label, index = self.name._eval(env, eval = False), self.index._eval(env)
 
-        # Type checking
-        _, d_type = env[label]
-        if d_type.type not in ['LIST']:
-            raise TypeError(
-                f"Indexing operation applies only to List. (Line {self.token.linepos})")
-
-        if Typing.type_of(index) is not 'int':
+        if Typing.type_of(index) != 'int':
             raise TypeError(
                 f"List indices must be integers. (Line {self.token.linepos})")   
+
+        # Type checking
+        _, d_type = env[label]
+        if d_type.type not in ['LIST', 'GRAPH']:
+            raise TypeError(
+                f"Indexing operation applies only to List or Graph. (Line {self.token.linepos})")
 
         array = self.name._eval(env)
         if index >= len(array):
@@ -52,7 +52,10 @@ class Indexing(Statement):
         
         # If eval then reassign
         if "eval" in kwargs and kwargs["eval"]:
-            array[index] = kwargs["target"]._eval(env, eval = True)
+            target = kwargs["target"]._eval(env, eval = True)
+            
+            if d_type.type == 'LIST': array[index] = target
+            else: array[index][1] = target
 
-        return array[index]
+        return array[index] if d_type.type in ['LIST'] else array[index][1]
         

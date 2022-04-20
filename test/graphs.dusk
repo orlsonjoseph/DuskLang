@@ -1,0 +1,13 @@
+
+struct Book (
+    title: str,
+    isbn: int,
+    pages: list
+)
+
+let g: graph = node 7;
+
+let book: Book;
+g[0] = book;
+
+edge g 0 1;
